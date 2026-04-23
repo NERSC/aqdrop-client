@@ -1,0 +1,4 @@
+__pycache__/
+aqdrop_venv/
+dist/
+admin/

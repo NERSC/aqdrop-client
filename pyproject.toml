@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools >= 77.0.3", "httpx"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aqdrop"
+dynamic = ["version"]
+authors = [
+    { name="Evan Caplinger", email="ecaplinger@lbl.gov" },
+    { name="Jan Balewski", email="balewski@lbl.gov" }
+]
+description = "Thin client SDK for AQDROP API"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICENSE*"]
+
+dependencies = [
+    "httpx>=0.28.1",
+    "tabulate>=0.10.0",
+    "qiskit[core]>=2.3.1,<3"
+]
+
+[project.scripts]
+aqdrop = "aqdrop.cli:main"
+
+[project.optional-dependencies]
+qiskit = [
+    "qiskit[core]>=2.3.1,<3"
+]
+
+#operator = [
+#    "quantum-calibration>=1.0.6",
+#    "lbl-qubic>=25.8.0"
+#]
+
+[tool.setuptools.dynamic]
+version = {attr = "aqdrop.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["aqdrop*"]
+exclude = ["admin*", "examples*"]
