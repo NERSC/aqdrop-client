@@ -46,7 +46,9 @@ def main(args):
         submitted = c.update_queue(args.queue, args.new_name, default, limit, state)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         print(tabulate.tabulate([submitted.values()], headers=submitted.keys()))
 

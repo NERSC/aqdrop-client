@@ -7,8 +7,6 @@ import httpx
 from aqdrop import cli_utils, defs
 from aqdrop import creds
 
-print("Done importing.")
-
 
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--queue", help="The name of the queue.")
@@ -22,13 +20,13 @@ def add_args(parser: argparse.ArgumentParser):
 def main(args):
     default = True if args.default.lower() == "true" else False
 
-    #if args.state == "open":
-    #    state = defs.QueueState.OPEN
-    #elif args.state == "down":
-    #    state = defs.QueueState.DOWN
-    #else:
-    #    print(f"Unrecognized queue state \"{args.state}.\"\nOptions are {', '.join(s.value for s in defs.QueueState)}.")
-    #    exit()
+    if args.type == "qpu":
+        queue_type = defs.QueueType.QPU
+    elif args.type == "simu":
+        queue_type = defs.QueueType.SIMU
+    else:
+        print(f"Unrecognized queue type \"{args.type}.\"\nOptions are {', '.join(s.value for s in defs.QueueType)}.")
+        exit()
 
     try:
         limit = int(args.limit)
@@ -36,13 +34,21 @@ def main(args):
         print("--limit must be an integer.")
         exit()
 
+    try:
+        max_qubits = int(args.max_qubits)
+    except:
+        print("--max_qubits must be an integer.")
+        exit()
+
     c = cli_utils.connect_verbose()
 
     try:
-        submitted = c.add_queue(args.queue, default, limit, description=args.description)
+        submitted = c.add_queue(args.queue, default, limit, queue_type, max_qubits, description=args.description)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         print(tabulate.tabulate([submitted.values()], headers=submitted.keys()))
 

@@ -29,7 +29,9 @@ def main(args):
         job = c.dispatch_job(job_id, defs.JobStatus(args.status), {"message": args.output})
     except httpx.HTTPStatusError as e:
         print(f"Could not dispatch job.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         print(tabulate.tabulate([job.values()], headers=job.keys()))
 

@@ -38,7 +38,9 @@ def main(args):
         job = c.get_job(job_id)
     except httpx.HTTPStatusError as e:
         print(f"Could not get job.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         job_meta = {k: v for k, v in job.items() if not k in ("input", "output")}
         job_in = job["input"]

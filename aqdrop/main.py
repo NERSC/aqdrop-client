@@ -7,7 +7,7 @@ import tempfile
 import os
 import typing
 
-from . import defs, ops, creds
+from . import defs, creds
 
 
 class AqdropClient:
@@ -15,6 +15,8 @@ class AqdropClient:
                  username: str | None = None,
                  password: str | None = None,
                  host: str | None = None):
+        self._token = None
+
         if username is None:
             username = creds.get_username()
 
@@ -111,7 +113,7 @@ class AqdropClient:
         if is_admin is not None: req_json["is_admin"] = is_admin
         if is_operator is not None: req_json["is_operator"] = is_operator
         if is_suspended is not None: req_json["is_suspended"] = is_suspended
-        patch_request = self._request("PATCH", f"/members/{name}/role", json=req_json)
+        patch_request = self._request("PATCH", f"/members/{name}/role/", json=req_json)
         return patch_request.json()
 
 
@@ -207,15 +209,21 @@ class AqdropClient:
         return r.json()
 
 
-    def add_queue(self, queue_name: str, default_access: bool, limit: int, description: str = ""):
+    def add_queue(self, queue_name: str, default_access: bool, limit: int, queue_type: defs.QueueType, max_qubits: int, description: str = ""):
         req_json = {
                 "name": queue_name,
                 "default_access": default_access,
                 "limit_per_member": limit, 
-                "description": description
+                "description": description,
+                "type": queue_type,
+                "max_qubits": max_qubits
                 }
         r = self._request("POST", "/queue/", json=req_json)
         return r.json()
+
+
+    def get_queue(self, queue_name: str):
+        return self._request("GET", f"/queue/{queue_name}").json()
 
 
     def list_queues(self, state: defs.QueueState | None = None):

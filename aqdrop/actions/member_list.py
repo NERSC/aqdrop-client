@@ -34,7 +34,9 @@ def main(args, c):
         members = c.list_members(limit=limit, skip=skip)
     except httpx.HTTPStatusError as e:
         print(f"Could not list members.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         print(tabulate.tabulate([member.values() for member in members], headers=members[0].keys()))
 

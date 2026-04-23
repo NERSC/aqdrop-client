@@ -4,8 +4,7 @@ import argparse
 import httpx
 import tabulate
 
-from aqdrop import AqdropClient, connect_verbose, defs
-from aqdrop import creds
+from aqdrop import AqdropClient, defs, creds, cli_utils
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -50,13 +49,15 @@ def main(args):
         print(f"Unrecognized suspended setting \"{args.suspended}.\"\nOptions are true, false.")
         exit()
 
-    c = connect_verbose()
+    c = cli_utils.connect_verbose()
 
     try:
         queues = c.update_member_perms(args.name, is_admin=admin, is_operator=operator, is_suspended=suspended)
     except httpx.HTTPStatusError as e:
         print(f"Could not update member permissions.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}.")
     else:
         print("OK.")
 

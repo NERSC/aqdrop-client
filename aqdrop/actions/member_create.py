@@ -16,10 +16,6 @@ def add_args(parser):
 
 
 def main(args):
-    parser.add_argument("--name")
-    parser.add_argument("--email", default=None)
-    args = parser.parse_args()
-
     c = cli_utils.connect_verbose()
 
     try:
@@ -27,14 +23,16 @@ def main(args):
         c.update_member_perms(args.name, args.admin, args.operator)
     except httpx.HTTPStatusError as e:
         print(f"Could not create member.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}")
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Error {resp.status_code}: {detail}")
     else:
         # print out properly formatted .creds file to stdout so we can route it into a file
         print("#!/usr/bin/bash")
         print(f"export AQDROP_USERNAME={args.name}")
         print(f"export AQDROP_PASSWORD={output['password']}")
         print(f"export AQDROP_EMAIL={args.email}")
-        print(f"export AQDROP_HOSTNAME={creds.network}")
+        print(f"export AQDROP_HOSTNAME={creds.get_network()}")
 
 
 if __name__ == "__main__":

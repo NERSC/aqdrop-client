@@ -2,3 +2,5 @@ __pycache__/
 aqdrop_venv/
 dist/
 admin/
+test/
+aqdrop.egg-info/
