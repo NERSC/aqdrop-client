@@ -56,19 +56,21 @@ def print_circuit_table(circ, meta: dict):
     if isinstance(shots, int):
         shots = [shots] * len(circuits)
 
-    print(f"Submitted {len(circuits)} circuits to queue={meta['queue_name']}")
     print("idx  num_qubits  num_shots")
     for idx, qc in enumerate(circuits):
         num_shots = shots[idx] if idx < len(shots) else "n/a"
         print(f"{idx:>3}  {qc.num_qubits:>10}  {num_shots}")
 
 
-def submit_job(queue: str, circ, meta: dict, verb: int = 1) -> int:
+def submit_job(queue: str, circ, meta: dict, *, client: aqdrop.AqdropClient, verb: int = 1) -> int:
     circuits = as_circuit_list(circ)
     meta = dict(meta)
+    if "queue_name" in meta:
+        raise ValueError("queue_name must be passed as the queue argument, not in meta")
     shots = meta.get("shots")
     if isinstance(shots, list):
         assert len(circuits) == len(shots), "circ and shots must have the same length"
+    meta.setdefault("comment", None)
     meta["num_qubits"] = [qc.num_qubits for qc in circuits]
     meta["queue_name"] = queue
     job_input = {"qpy": encode_qpy_circuit(circuits)}
@@ -77,7 +79,9 @@ def submit_job(queue: str, circ, meta: dict, verb: int = 1) -> int:
     if verb > 2:
         pprint(job_input)
 
-    client = aqdrop.AqdropClient()
+    if client is None:
+        raise ValueError("client is required")
+
     try:
         submitted = client.submit_job(queue, job_input)
     except httpx.HTTPStatusError as e:
@@ -93,6 +97,7 @@ def submit_job(queue: str, circ, meta: dict, verb: int = 1) -> int:
 
     job_id = submitted["id"]
     print(f"Job submission successful; assigned job ID {job_id}.")
+    print(f"Submitted {len(circuits)} circuits to queue={meta['queue_name']}")
     print_circuit_table(circuits, meta)
     print(f"   ./job_retrieve.py --id {job_id}")
     if verb > 1:

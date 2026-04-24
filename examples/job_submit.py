@@ -3,10 +3,11 @@
 """Submit a small Bell-state example job to an AQDrop queue."""
 
 import argparse
+import aqdrop
 import numpy as np
 from pprint import pprint
 from qiskit import QuantumCircuit
-from Util_AQDrop import submit_job
+from Util_AQDrop import print_circuit_table, submit_job
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -32,10 +33,7 @@ def circ_tens2(th0,th1):
     qc.measure_all()
     return qc
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_args(parser)
-    args = parser.parse_args()
+def main(args):
     for arg in vars(args):   print( arg, getattr(args, arg))
       
     if args.verb > 1:
@@ -48,13 +46,22 @@ if __name__ == "__main__":
     
     shotL=[args.shots]+4*[10*args.shots]+[args.shots]
     nCirc=len(circL)
-    job_meta = {"shots": shotL}
+    job_meta = {"shots": shotL, 'comment':'bell job and SPAM measurement'}
     
     print('M: execution-ready %d circuits  to AQDrop queue=%s'%(nCirc,args.queue))
     if not args.execJob:
+        print_circuit_table(circL, job_meta)
         pprint(job_meta)
         print('\nNO execution of circuits, use -E to execute the job\n')
         exit(0)
-  
-    submit_job(queue=args.queue, circ=circL, meta=job_meta, verb=args.verb)
 
+    client = aqdrop.AqdropClient()
+    submit_job(queue=args.queue, circ=circL, meta=job_meta, verb=args.verb, client=client)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    add_args(parser)
+    args = parser.parse_args()
+
+    main(args)
