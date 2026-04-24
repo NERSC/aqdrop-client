@@ -1,51 +1,38 @@
 #!/usr/bin/env python3
 
+"""Submit a small Bell-state example job to an AQDrop queue."""
+
 import argparse
-import pprint
-import tabulate
-import httpx
-import tempfile
-import base64
 
-from aqdrop import cli_utils
-from aqdrop import creds
+from qiskit import QuantumCircuit
 
-from qiskit import QuantumCircuit, qpy
-
+from Util_AQDrop import submit_job
 
 
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--queue", default="ideal", help="The name of the queue to submit the Bell state job to.")
+    parser.add_argument("-q", "--queue", required=True, help="The name of the queue to submit the Bell state job to.")
+    parser.add_argument("-n", "--shots", type=int, default=1024, help="The number of shots to submit with the job.")
+    parser.add_argument("-v", "--verb", type=int, default=1, help="Verbosity level. Use values >1 for extra output.")
+
+
+def build_bell_circuit() -> QuantumCircuit:
+    qc = QuantumCircuit(2, 2)
+    qc.h(0)
+    qc.cx(0, 1)
+    qc.measure(0, 0)
+    qc.measure(1, 1)
+    return qc
 
 
 def main(args):
+    qc = build_bell_circuit()
+    if args.verb > 1:
+        print(qc.draw())
 
-    c = cli_utils.connect_verbose()
+    circuits = [qc, qc]
+    job_meta = {"shots": [args.shots, args.shots]}
 
-    qc = QuantumCircuit(2, 2)
-    qc.h(0)
-    qc.cx(0,1)
-    qc.measure(0,0)
-    qc.measure(1,1)
-
-    with tempfile.NamedTemporaryFile(delete_on_close=False) as tf:
-        qpy.dump(qc, tf)
-        tf.close()
-        with open(tf.name, 'rb') as tfr:
-            b = base64.b64encode(tfr.read())
-
-    job_dd = {
-            'qpy': b.decode(),
-            'shots': 1024
-            }
-
-    try:
-        submitted = c.submit_job(args.queue, job_dd)
-    except httpx.HTTPStatusError as e:
-        print(f"Job submission failed.")
-        print(f"Error {e.response.status_code}: {e.response.json()['detail']}.")
-    else:
-        print(f"Job submission successful; assigned job ID {submitted['id']}.")
+    return submit_job(queue=args.queue, circ=circuits, meta=job_meta, verb=args.verb)
 
 
 if __name__ == "__main__":

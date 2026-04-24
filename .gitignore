@@ -4,3 +4,6 @@ dist/
 admin/
 test/
 aqdrop.egg-info/
+.codex
+old/
+*~
