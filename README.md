@@ -18,26 +18,3 @@ In order to submit Qiskit circuits, install Qiskit manually or include Qiskit in
 pip install aqdrop[qiskit]
 ```
 
-### Basic Usage
-
-See the "examples" directory for examples of basic job submission and retrieval.
-```python
-import aqdrop
-import qiskit
-
-# Initialize the client
-client = aqdrop.AqdropClient()
-
-# Submit a Qiskit job
-qc = qiskit.QuantumCircuit(1)
-qc.h(0)
-qc.measure_all()
-job = client.submit_qiskit("ideal", qc)
-print(f"Job submitted with ID: {job.id}")
-
-# Check job status
-status = client.get_job(job_id=job.id)
-print(f"Current status: {status.status}")
-```
-
-Note that the constructor for AqdropClient requires the user's credentials (including the API hostname). If any credentials are not provided explicitly in the constructor call, AQDrop will check the environment variables AQDROP_USERNAME, AQDROP_PASSWORD, and AQDROP_HOSTNAME.
