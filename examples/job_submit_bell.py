@@ -3,9 +3,7 @@
 """Submit a small Bell-state example job to an AQDrop queue."""
 
 import argparse
-
 from qiskit import QuantumCircuit
-
 from Util_AQDrop import submit_job
 
 
@@ -15,7 +13,7 @@ def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("-v", "--verb", type=int, default=1, help="Verbosity level. Use values >1 for extra output.")
 
 
-def build_bell_circuit() -> QuantumCircuit:
+def circ_bell():
     qc = QuantumCircuit(2, 2)
     qc.h(0)
     qc.cx(0, 1)
@@ -25,7 +23,7 @@ def build_bell_circuit() -> QuantumCircuit:
 
 
 def main(args):
-    qc = build_bell_circuit()
+    qc = circ_bell()
     if args.verb > 1:
         print(qc.draw())
 

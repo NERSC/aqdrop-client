@@ -94,7 +94,7 @@ def submit_job(queue: str, circ, meta: dict, verb: int = 1) -> int:
     job_id = submitted["id"]
     print(f"Job submission successful; assigned job ID {job_id}.")
     print_circuit_table(circuits, meta)
-    print(f"   ./job_retrieve_bell.py --id {job_id}")
+    print(f"   ./job_retrieve.py --id {job_id}")
     if verb > 1:
         pprint(submitted)
     return job_id
