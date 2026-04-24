@@ -1,7 +1,8 @@
 # AQDrop End-User Setup
 
 This guide shows how to set up AQDrop as an end user, submit a minimal Qiskit
-job, and retrieve the job record after it has run.
+job, and retrieve the job record after it has been executed by a privileged
+operator. AQDrop is a human-operated API on both ends of the service.
 
 ![AQDrop user setup diagram](AQDrop-user.png)
 
@@ -12,9 +13,9 @@ Ask the AQDrop service administrator for:
 - your AQDrop username
 - your AQDrop password
 - the AQDrop API hostname
-- the queue name you are allowed to submit to
 
-The AQDrop Python client reads credentials from these environment variables:
+You will receive these values from the AQDrop administrator. The AQDrop Python
+client reads credentials from these environment variables:
 
 ```bash
 export AQDROP_USERNAME=<your-user-name>
@@ -22,19 +23,15 @@ export AQDROP_PASSWORD=<your-password>
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
 
-Keep credentials out of GitHub and out of container images. Prefer storing
-them in your personal `.ssh` directory and sourcing them at the start of each
-session.
+> **Credential safety**
+>
+> - **Keep credentials out of GitHub and out of container images.**
+> - **Do not bake credentials into the image.**
 
-For example, create `~/.ssh/aqdrop.creds`:
+Prefer storing credentials in your personal `.ssh` directory and sourcing them
+at the start of each session.
 
-```bash
-export AQDROP_USERNAME=jan
-export AQDROP_PASSWORD=password789
-
-export AQDROP_HOSTNAME=https://aqdrop-api.lbl-b59.org/
-```
-
+For example, create `~/.ssh/aqdrop.creds` with these three variables.
 Restrict access to the file:
 
 ```bash
@@ -48,7 +45,9 @@ source ~/.ssh/aqdrop.creds
 ```
 
 For container use, source the credentials on the host and pass the environment
-variables into the container at runtime. Do not bake credentials into the image.
+variables into the container at runtime. Inspect `examples/pm_balewski.src` to
+see how to source credentials before the image is launched and pass the
+environment variables to the image at execution time.
 
 ## Laptop Setup
 
@@ -101,7 +100,7 @@ Adapt that script for your account, paths, image tag, and credential source.
 The launcher should pass `AQDROP_USERNAME`, `AQDROP_PASSWORD`, and
 `AQDROP_HOSTNAME` into the container.
 
-## Minimal Submit and Retrieve Example
+## Minimal Example for Submit and Retrieve Quantum Job on AQT QPU Named X6Y3
 
 From the repository example directory:
 
@@ -112,7 +111,7 @@ cd AQDrop/examples
 Submit a Bell-state job:
 
 ```bash
-python3 job_submit_bell.py -q <queue-name>
+python3 job_submit_bell.py -q X6Y3
 ```
 
 The submit script prints the assigned job ID, for example:
@@ -146,6 +145,16 @@ python3 job_retrieve.py --id 123 -v 3
 record.
 
 ## Notes
+
+Use the AQDrop CLI to inspect queues and jobs:
+
+```bash
+aqdrop queue_list
+aqdrop job_list
+```
+
+`aqdrop queue_list` lists available queues. `aqdrop job_list` lists your jobs
+and their status.
 
 `examples/job_submit_bell.py` submits immediately. The larger
 `examples/job_submit.py` script prepares a multi-circuit example and only
