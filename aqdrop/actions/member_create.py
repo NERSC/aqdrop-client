@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import pprint
 import httpx
 
-from aqdrop import cli_utils
+from aqdrop import AqdropClient
 from aqdrop import creds
 
 
@@ -16,7 +15,7 @@ def add_args(parser):
 
 
 def main(args):
-    c = cli_utils.connect_verbose()
+    c = AqdropClient()
 
     try:
         output = c.create_member(args.name, args.email)
@@ -31,7 +30,6 @@ def main(args):
         print("#!/usr/bin/bash")
         print(f"export AQDROP_USERNAME={args.name}")
         print(f"export AQDROP_PASSWORD={output['password']}")
-        print(f"export AQDROP_EMAIL={args.email}")
         print(f"export AQDROP_HOSTNAME={creds.get_network()}")
 
 

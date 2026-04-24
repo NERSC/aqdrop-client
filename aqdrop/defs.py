@@ -3,11 +3,10 @@ import enum
 
 class JobStatus(str, enum.Enum):
     QUEUED = "queued"
-    #RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
     CANCELLED = "cancelled"
-    KILLED = "killed"
+    DECLINED = "declined"
 
 
 class QueueState(str, enum.Enum):

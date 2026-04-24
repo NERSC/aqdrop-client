@@ -117,15 +117,24 @@ class AqdropClient:
         return patch_request.json()
 
 
+    def _validate_job(self, queue_name: str, job_input: dict):
+        if "queue_name" not in job_input.keys():
+            job_input.update({"queue_name": queue_name})
+        else:
+            if job_input["queue_name"] != queue_name:
+                raise ValueError(f"queue_name in job_input must match queue_name provided in submit_job arguments.")
+
+
     # TODO: update job_input type?
     def submit_job(self, queue_name: str, job_input: dict):
-        job_input.update({"queue_name": queue_name})
+        self._validate_job(queue_name, job_input)
+
         req_json = {
                 "queue_name": queue_name,
                 "input": job_input
                 }
-        post_request = self._request("POST", "/job/", json=req_json)
-        return post_request.json()
+        post_resp = self._request("POST", "/job/", json=req_json)
+        return post_resp.json()
 
 
     def _embed_qiskit(self, qc: typing.List[qiskit.QuantumCircuit]):
@@ -139,8 +148,8 @@ class AqdropClient:
             qiskit.qpy.dump(qc, tf)
             tf.close()
             with open(tf.name, 'rb') as tfr:
-                b = base64.b64encode(tfr.read())
-        return b.decode()
+                qc_embedded = base64.b64encode(tfr.read())
+        return qc_embedded.decode()
 
 
     def _extract_qiskit(self, b: str) -> typing.List[qiskit.QuantumCircuit]:
@@ -165,15 +174,32 @@ class AqdropClient:
             raise TypeError("Embedded QPY must be a Qiskit circuit or list of Qiskit circuits.")
 
 
-    def submit_qiskit(self, queue_name: str, qc: typing.List[qiskit.QuantumCircuit]):
-        b = self._embed_qiskit(qc)
+    def _validate_qiskit(self, queue_name: str, qc: typing.List[qiskit.QuantumCircuit], meta: dict):
+        try:
+            import qiskit
+            import qiskit.qpy
+        except ImportError:
+            raise ImportError("qiskit is required for this method. Please run 'pip install qiskit' or install aqdrop[qiskit].")
 
-        job_dd = {
-                'qpy': b,
-                'shots': 1024
-        }
+        # ensure job submission specifies shots
+        if 'shots' not in meta.keys():
+            raise ValueError("argument 'meta' must contain an entry 'shots'")
 
+        # ensure shots are specified for each circuit
+        num_circs = len(qc)
+        if len(meta['shots']) != num_circs:
+            raise ValueError(f"argument 'meta' must specify {num_circs} shots, but has only specified {len(meta['shots'])}")
+
+
+    def submit_qiskit(self, queue_name: str, qc: typing.List[qiskit.QuantumCircuit], meta: dict):
+        # raise exceptions if the job submission is badly formatted
+        self._validate_qiskit(queue_name, qc, meta)
+
+        qc_embedded = self._embed_qiskit(qc)
+        job_dd = dict(**meta, qpy=qc_embedded)
         submitted = self.submit_job(queue_name, job_dd)
+
+        return submitted
 
 
     def get_job(self, job_id: int, extract_qpy: bool = False):
