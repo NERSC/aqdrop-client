@@ -31,7 +31,7 @@ def main(args):
         print(qc.draw())
 
     circuits = [qc, qc]
-    job_meta = {"shots": [args.shots, args.shots], 'comment':'my 1st bell job'}
+    job_meta = {"shots": [args.shots, 2*args.shots], 'comment':'my 1st bell job'}
 
     return submit_job(queue=args.queue, circ=circuits, meta=job_meta, verb=args.verb, client=client)
 

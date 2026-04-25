@@ -3,6 +3,7 @@ import httpx
 import certifi
 import ssl
 import base64
+import io
 import tempfile
 import os
 import typing
@@ -152,7 +153,7 @@ class AqdropClient:
         return qc_embedded.decode()
 
 
-    def _extract_qiskit(self, b: str) -> typing.List[qiskit.QuantumCircuit]:
+    def extract_qiskit(self, b: str) -> typing.List[qiskit.QuantumCircuit]:
         try:
             import qiskit
             import qiskit.qpy
@@ -160,18 +161,14 @@ class AqdropClient:
             raise ImportError("qiskit is required for this method. Please run 'pip install qiskit' or install aqdrop[qiskit].")
 
         embedded_qpy = base64.b64decode(b)
-        with tempfile.NamedTemporaryFile(delete_on_close=False) as tf:
-            tf.write(embedded_qpy)
-            tf.close()
-            with open(tf.name, 'rb') as tfr:
-                qc = qiskit.qpy.load(tfr)[0]
+        circuits = qiskit.qpy.load(io.BytesIO(embedded_qpy))
 
-        if type(qc) == qiskit.QuantumCircuit:
-            return [qc]
-        elif isinstance(qc, list):
-            return qc
-        else:
-            raise TypeError("Embedded QPY must be a Qiskit circuit or list of Qiskit circuits.")
+        if not isinstance(circuits, list):
+            raise TypeError("Embedded QPY must contain a list of Qiskit circuits.")
+        if all(isinstance(qc, qiskit.QuantumCircuit) for qc in circuits):
+            return circuits
+
+        raise TypeError("Embedded QPY list must contain only Qiskit circuits.")
 
 
     def _validate_qiskit(self, queue_name: str, qc: typing.List[qiskit.QuantumCircuit], meta: dict):
@@ -207,7 +204,7 @@ class AqdropClient:
         job_dd: dict = get_request.json()
 
         if extract_qpy:
-            qc = self._extract_qiskit(job_dd["qpy"])
+            qc = self.extract_qiskit(job_dd["qpy"])
             job_dd.update({"qc": qc})
 
         return job_dd
