@@ -79,7 +79,7 @@ On Perlmutter, a ready AQDrop Podman-HPC image may already be available:
 podman-hpc images | grep aqdrop
 ```
 
-If you need to build the image yourself:
+If you need to build the image yourself you can modiffy the one provided:
 
 ```bash
 git clone git@github.com:balewski/AQDrop.git
@@ -96,7 +96,7 @@ repository includes `pm_balewski.src` as a user-specific launcher:
 . ./pm_balewski.src
 ```
 
-Adapt that script for your account, paths, image tag, and credential source.
+Adapt that image starting script for your account, paths, image tag, and credential source.
 The launcher should pass `AQDROP_USERNAME`, `AQDROP_PASSWORD`, and
 `AQDROP_HOSTNAME` into the container.
 
@@ -111,7 +111,7 @@ cd AQDrop/examples
 Submit a Bell-state job:
 
 ```bash
-python3 job_submit_bell.py -q X6Y3
+ ./job_submit_bell.py -q X6Y3
 ```
 
 The submit script prints the assigned job ID, for example:
@@ -137,8 +137,8 @@ Wait and run the same retrieve command again. Use higher verbosity to inspect
 more detail:
 
 ```bash
-python3 job_retrieve.py --id 123 -v 2
-python3 job_retrieve.py --id 123 -v 3
+ ./job_retrieve.py --id 123 -v 2
+ ./job_retrieve.py --id 123 -v 3
 ```
 
 `-v 2` prints the packed Qiskit circuits. `-v 3` prints the full returned job
@@ -161,6 +161,6 @@ and their status.
 submits when `-E` is provided:
 
 ```bash
-python3 job_submit.py -q <queue-name>
-python3 job_submit.py -q <queue-name> -E
+ ./job_submit.py -q <queue-name>
+ ./job_submit.py -q <queue-name> -E
 ```
