@@ -7,7 +7,7 @@ import aqdrop
 import numpy as np
 from pprint import pprint
 from qiskit import QuantumCircuit
-from Util_AQDrop import print_circuit_table, submit_job
+from Util_AQDrop import assemble_job_input, print_circuit_table, push_job_input
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -44,9 +44,9 @@ def main(args):
     # this example:  Bell-state, 4 SPAM circ,  2 random angles circ
     circL = [circ_bell(),circ_tens2(0,0),circ_tens2(0,np.pi),circ_tens2(np.pi,0),circ_tens2(np.pi,np.pi), circ_tens2(0.8, -2.5)]
     
-    shotL=[args.shots]+4*[10*args.shots]+[args.shots]
+    shotL=[args.shots]+4*[10*args.shots]+[100]
     nCirc=len(circL)
-    job_meta = {"shots": shotL, 'comment':'bell job and SPAM measurement'}
+    job_meta = {"shots": shotL, "comment": "bell job and SPAM measurement", "queue_name": args.queue}
     
     print('M: execution-ready %d circuits  to AQDrop queue=%s'%(nCirc,args.queue))
     if not args.execJob:
@@ -56,7 +56,8 @@ def main(args):
         exit(0)
 
     client = aqdrop.AqdropClient()
-    submit_job(queue=args.queue, circ=circL, meta=job_meta, verb=args.verb, client=client)
+    job_input = assemble_job_input(circL, job_meta)
+    push_job_input(client, job_input)
 
 
 if __name__ == "__main__":

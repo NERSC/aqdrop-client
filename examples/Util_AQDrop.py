@@ -7,7 +7,6 @@ from numbers import Number
 from pprint import pprint
 
 import aqdrop
-import httpx
 from qiskit import QuantumCircuit
 from qiskit import qpy
 
@@ -196,44 +195,34 @@ def print_output_counts(output):
         pprint(counts)
 
 
-def submit_job(queue: str, circ, meta: dict, *, client: aqdrop.AqdropClient, verb: int = 1) -> int:
-    circuits = as_circuit_list(circ)
-    meta = dict(meta)
-    if "queue_name" in meta:
-        raise ValueError("queue_name must be passed as the queue argument, not in meta")
+def assemble_job_input(circL, inputMD: dict) -> dict:
+    """Build the AQDrop job_input payload from circuits and metadata.
+
+    inputMD must contain 'queue_name'. May contain 'shots' (int or list) and
+    'comment'. Returns a dict ready to hand to push_job_input().
+    """
+    circuits = as_circuit_list(circL)
+    assert "queue_name" in inputMD, "inputMD must contain 'queue_name'"
+    meta = dict(inputMD)
     shots = meta.get("shots")
     if isinstance(shots, list):
-        assert len(circuits) == len(shots), "circ and shots must have the same length"
+        assert len(circuits) == len(shots), "circL and shots must have the same length"
     meta.setdefault("comment", None)
     meta["num_qubits"] = [qc.num_qubits for qc in circuits]
-    meta["queue_name"] = queue
     job_input = {"qpy": encode_qpy_circuit(circuits)}
     job_input.update(meta)
 
-    if verb > 2:
-        pprint(job_input)
+    print(f"Assembled job_input for {len(circuits)} circuits, queue={meta['queue_name']}")
+    print_circuit_table(circuits, meta)
+    return job_input
 
-    if client is None:
-        raise ValueError("client is required")
 
-    try:
-        submitted = client.submit_job(queue, job_input)
-    except httpx.HTTPStatusError as e:
-        print("Job submission failed.")
-        resp = e.response
-        detail = resp.json().get("detail") if "application/json" in resp.headers.get("content-type", "") else resp.text
-        print(f"Error {resp.status_code}: {detail}.")
-        return 0
-    except httpx.ConnectError as e:
-        print("Could not connect to AQDROP service. Is AQDROP_HOSTNAME properly set?")
-        print(f"Error: {e}")
-        return 0
-
+def push_job_input(client: aqdrop.AqdropClient, job_input: dict) -> int:
+    """Submit an already-assembled job_input to AQDrop and return the job_id."""
+    assert client is not None, "client is required"
+    queue = job_input["queue_name"]
+    submitted = client.submit_job(queue, job_input)
     job_id = submitted["id"]
     print(f"Job submission successful; assigned job ID {job_id}.")
-    print(f"Submitted {len(circuits)} circuits to queue={meta['queue_name']}")
-    print_circuit_table(circuits, meta)
     print(f"   ./job_retrieve.py --id {job_id}")
-    if verb > 1:
-        pprint(submitted)
     return job_id

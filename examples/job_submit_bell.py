@@ -5,7 +5,7 @@
 import argparse
 import aqdrop
 from qiskit import QuantumCircuit
-from Util_AQDrop import submit_job
+from Util_AQDrop import assemble_job_input, push_job_input
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -31,9 +31,10 @@ def main(args):
         print(qc.draw())
 
     circuits = [qc, qc]
-    job_meta = {"shots": [args.shots, 2*args.shots], 'comment':'my 1st bell job'}
+    job_meta = {"shots": [args.shots, 2*args.shots], "comment": "my 1st bell job", "queue_name": args.queue}
 
-    return submit_job(queue=args.queue, circ=circuits, meta=job_meta, verb=args.verb, client=client)
+    job_input = assemble_job_input(circuits, job_meta)
+    return push_job_input(client, job_input)
 
 
 if __name__ == "__main__":
