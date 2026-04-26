@@ -3,9 +3,9 @@
 """Submit a small Bell-state example job to an AQDrop queue."""
 
 import argparse
-import aqdrop
 from qiskit import QuantumCircuit
-from Util_AQDrop import assemble_job_input, push_job_input
+
+from AqdropUser import AqdropUser
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -24,8 +24,6 @@ def circ_bell():
 
 
 def main(args):
-    client = aqdrop.AqdropClient()
-
     qc = circ_bell()
     if args.verb > 1:
         print(qc.draw())
@@ -33,8 +31,14 @@ def main(args):
     circuits = [qc, qc]
     job_meta = {"shots": [args.shots, 2*args.shots], "comment": "my 1st bell job", "queue_name": args.queue}
 
-    job_input = assemble_job_input(circuits, job_meta)
-    return push_job_input(client, job_input)
+    # 1) instantiate user (creates its own AQDrop client)
+    user = AqdropUser(args.verb)
+
+    # 2) assemble job_input from circuits + metadata
+    user.assemble_job_input(circuits, job_meta)
+
+    # 3) push job_input to DB
+    return user.push_job_input()
 
 
 if __name__ == "__main__":

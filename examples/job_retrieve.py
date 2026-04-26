@@ -3,17 +3,9 @@
 """Retrieve an AQDrop example job and optionally print its packed circuits."""
 
 import argparse
-from pathlib import Path
 from pprint import pprint
-import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import aqdrop
-from Util_AQDrop import (
-    extract_transpiled_qiskit_circuits,
-    print_output_counts,
-    print_shot_summary,
-)
+from AqdropUser import AqdropUser
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -28,44 +20,41 @@ def add_args(parser: argparse.ArgumentParser):
 
 
 def main(args):
-    client = aqdrop.AqdropClient()
-    job = client.get_job(job_id=args.id)
-    summary = {k: job.get(k) for k in ("id", "owner_name", "queue_name", "status")}
-    print(summary)
-    status = job.get("status")
+    # 1) instantiate user (creates its own AQDrop client)
+    user = AqdropUser(args.verb)
+
+    # 2) pull job from DB (input always present, output if available)
+    job = user.pull_job(args.id)
+
+    # 3) parse job into circuits, input metadata, output, transpiled circuits
+    circL, inputMD, output, transpiledL = user.parse_job()
+
+    status = job["status"]
     if status == "queued":
         print("no results available yet")
     elif status == "success":
-        print_shot_summary(job)
+        user.print_shot_summary()
+        print(f"tot_exec_time={output['tot_exec_time']:.1f} sec")
+        print(f"received tot_shots={output['tot_shots']}")
+        print(f"calib_ver={output['calib_ver']}")
+        print(f"exec_date={output['exec_date']}")
         if args.verb > 0:
-            print_output_counts(job.get("output"))
+            user.print_output_counts()
 
-    shots = job.get("input", {}).get("shots", 0)
-    if isinstance(shots, list):
-        total_shots = sum(shots)
-    elif isinstance(shots, int):
-        total_shots = shots
-    else:
-        total_shots = 0
-
-    qpy_blob = job.get("input", {}).get("qpy")
-    if qpy_blob is None:
-        circuits = []
-    else:
-        circuits = client.extract_qiskit(qpy_blob)
-    print(f"Packed circuits: {len(circuits)}, total requested shots: {total_shots}")
+    total_shots = sum(inputMD["shots"])
+    print(f"Packed circuits: {len(circL)}, total requested shots: {total_shots}")
 
     if args.verb > 1:
-        for idx, qc in enumerate(circuits):
+        for idx, qc in enumerate(circL):
             print(f"circuit[{idx}]")
             print(qc)
-        if status == "success":
-            transpiled_circuits = extract_transpiled_qiskit_circuits(job, client)
-            for idx, qc in enumerate(transpiled_circuits):
+        if transpiledL:
+            for idx, qc in enumerate(transpiledL):
                 print(f"transpiled_circuit[{idx}]")
                 print(qc)
     if args.verb > 2:
         pprint(job)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
