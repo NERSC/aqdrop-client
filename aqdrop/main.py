@@ -200,7 +200,14 @@ class AqdropClient:
 
 
     def get_job(self, job_id: int, extract_qpy: bool = False):
-        get_request = self._request("GET", f"/job/?job_id={job_id}")
+        try:
+            get_request = self._request("GET", f"/job/?job_id={job_id}")
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                if extract_qpy:
+                    return {"qc": None}
+                return {}
+            raise
         job_dd: dict = get_request.json()
 
         if extract_qpy:
