@@ -1,9 +1,10 @@
 FROM ubuntu:24.04
 
-# HPC-Podman on PM 
-#  time  podman-hpc  build  -f ubu24-aqdrop-x86.dockerfile -t ubu24-aqdrop:p1b	
+# HPC-Podman on PM: 
+#  time  podman-hpc  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1b	
 # additionaly do 1 time:      podman-hpc migrate ubu24-aqdrop:p1
-
+# on macOS:  
+#    podman  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1d    --platform linux/arm64
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles \
