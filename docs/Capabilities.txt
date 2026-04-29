@@ -1,0 +1,34 @@
+How the software was built
+----------------------------
+
+The overall solution spans three complementary layers.
+
+The thin Python SDK is packaged with setuptools for pip installation (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for members, queues, and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
+
+The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. OAuth2-style password flows issue signed JWTs; role checks separate ordinary members, operators, and administrators. Job, queue, and member endpoints persist state through CRUD layers against PostgreSQL. Container definitions bundle the API service, database image, and optional browser-facing tier with orchestration scripts for local or staged rollout.
+
+The browser tier is a Flask application served with Gunicorn. Sessions hold API tokens; pages render dashboards for queues and jobs and offer flows to inspect queues and submit or view jobs. Those views call the same Python SDK against the configured API URL.
+
+Operator-side tooling runs outside that HTTP tier on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API.
+
+
+Capabilities
+------------
+
+• Authenticated access to the central service: login, JWT reuse, session-backed login for interactive browser users.
+
+• Member lifecycle and governance: accounts created or adjusted by privileged roles; suspension prevents login; operators and admins can perform elevated reads and updates where the API allows.
+
+• Queue management: define queues with capacity, access defaults, topology limits, and lifecycle state; list and filter queues for monitoring.
+
+• Job management: submit structured job input (including Qiskit circuits with shot metadata when using the SDK); query jobs by id, queue, owner, or status; retrieve results; check status; cancel or dispatch updates subject to permissions.
+
+• Command-line parity with core API workflows for scripting and automation.
+
+• Operator execution paths: pull work in “queued” state, run predefined simulation or hardware pipelines, and push outputs so users see completion through the same job records the client and dashboard use.
+
+
+Intended end-use
+----------------
+
+The software supports the Advanced Quantum Testbed (AQT) management model: a single service mediates access to constrained quantum execution resources rather than exposing hardware ad hoc. Researchers and application authors use the Python SDK to submit work, monitor queues, and inspect outcomes. Administrators and operators configure members and queues and, on systems where it is deployed, run the execution side that bridges queued API jobs to simulators or controlled hardware. Typical deployment aligns with institutional high-performance computing environments (for example coordinated use of facility resources such as those at NERSC) while the same components can be adapted for laboratory or containerized installs.

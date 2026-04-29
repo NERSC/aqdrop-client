@@ -1,0 +1,33 @@
+AQDrop is a job management system designed to streamline access to the Advanced Quantum Testbed (AQT) at NERSC (National Energy Research Scientific Computing Center). It serves as a centralized middleware layer between researchers and quantum processing hardware.
+
+Key Features: AQDrop provides a FastAPI-based server backed by PostgreSQL for job submission, queue management, and role-based access control (members, operators, and administrators). Users submit Qiskit circuits via JSON payloads, which are queued, dispatched to the QPU through the Qubic API, and returned as measurement counts. A Python client library and web dashboard round out the interface options.
+
+Primary Use: Researchers submit quantum circuit jobs from a laptop or login node; an operator client executes those jobs on the AQT's physical QPU and returns results — all coordinated through the central API.
+
+Advantages: Compared to ad-hoc or direct hardware access, AQDrop adds structured queue management, auditable job-status tracking , and OAuth2 authentication — reducing scheduling conflicts and unauthorized access. Its containerized deployment also improves reproducibility and scalability.
+
+Overall, AQDrop functions as a purpose-built quantum job broker tailored to NERSC's specific hardware and institutional access requirements.
+
+
+Possible Uses for AQDrop
+
+Since AQDrop is purpose-built for managing access to a specific quantum testbed at a national laboratory, its applications are primarily non-commercial in nature.
+
+Scientific Research
+The most direct use is enabling researchers to run quantum computing experiments on real QPU hardware without needing direct, unmediated hardware access. This supports work in quantum algorithms, error correction, materials simulation, chemistry modeling, and fundamental quantum information science.
+
+Multi-User Facility Management
+National laboratories and universities operating shared quantum hardware can use AQDrop as a model or deployable framework for managing competing user demands fairly and transparently, much like how HPC centers manage compute allocations.
+
+Education and Training
+Graduate students and early-career researchers can use AQDrop to gain hands-on experience submitting and retrieving real quantum jobs, bridging the gap between simulator-based coursework and actual QPU experimentation.
+
+Benchmarking and Hardware Characterization
+Operators can systematically submit standardized circuit benchmarks to evaluate on premise QPU performance over time, supporting hardware development and quality assurance workflows.
+
+Quantum Software Development
+Developers building quantum applications can use AQDrop's API and Python library as a testing ground for validating algorithms against real hardware rather than simulators.
+
+Interested Parties include national laboratories, academic research groups, quantum hardware developers, government agencies funding quantum initiatives (such as DOE and NSF), and university quantum computing centers.
+
+
