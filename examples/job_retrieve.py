@@ -3,9 +3,32 @@
 """Retrieve an AQDrop example job and optionally print its packed circuits."""
 
 import argparse
+import copy
 from pprint import pprint
 
 from AqdropUser import AqdropUser
+
+
+def _job_dump_trunc_qpy_blobs(job: dict) -> dict:
+    """Deep copy of job for display; long QPY blobs as first/last 15 chars with total length."""
+    d = copy.deepcopy(job)
+
+    def trunc_key(container: dict, key: str):
+        blob = container.get(key)
+        if not isinstance(blob, str):
+            return
+        if len(blob) > 30:
+            container[key] = f"{blob[:15]}....{blob[-15:]} (len={len(blob)})"
+
+    for container in (d, d.get("input")):
+        if isinstance(container, dict):
+            trunc_key(container, "circ_inp_qpy")
+
+    outp = d.get("output")
+    if isinstance(outp, dict):
+        trunc_key(outp, "circ_transp_qpy")
+
+    return d
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -53,7 +76,7 @@ def main(args):
                 print(f"transpiled_circuit[{idx}]")
                 print(qc)
     if args.verb > 2:
-        pprint(job)
+        pprint(_job_dump_trunc_qpy_blobs(job))
 
 
 if __name__ == "__main__":

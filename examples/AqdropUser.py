@@ -12,7 +12,27 @@ import io
 from pprint import pprint
 
 import aqdrop
+import httpx
 from qiskit import QuantumCircuit, qpy
+
+
+def _submit_error_user_message(exc: BaseException) -> str:
+    """Best-effort API error text (works with httpx.HTTPStatusError or aqdrop.AqdropHttpError)."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        try:
+            data = exc.response.json()
+        except Exception:
+            text = (exc.response.text or "").strip()
+            return text[:2000] if text else str(exc)
+        if isinstance(data, dict) and "detail" in data:
+            d = data["detail"]
+            if isinstance(d, str):
+                return d
+            if isinstance(d, list):
+                return "; ".join(str(x.get("msg", x)) if isinstance(x, dict) else str(x) for x in d)
+            return str(d)
+        return str(data) if data is not None else str(exc)
+    return str(exc)
 
 
 def print_circuit_table(circuits, meta: dict):
@@ -48,6 +68,7 @@ class AqdropUser:
     def assemble_job_input(self, circL, inpMD: dict) -> dict:
         circuits = [circL] if isinstance(circL, QuantumCircuit) else list(circL)
         assert "queue_name" in inpMD
+        assert "pref_qubits" in inpMD
 
         meta = dict(inpMD)
         shots = meta.get("shots")
@@ -64,7 +85,7 @@ class AqdropUser:
 
         self.circL = circuits
         self.inputMD = meta
-        self.job_input = {"qpy": qpy_blob, **meta}
+        self.job_input = {"circ_inp_qpy": qpy_blob, **meta}
 
         print(f"assembled job_input for {len(circuits)} circuits, queue={meta['queue_name']}")
         print_circuit_table(circuits, meta)
@@ -74,7 +95,16 @@ class AqdropUser:
     def push_job_input(self) -> int:
         assert self.job_input is not None
         queue = self.job_input["queue_name"]
-        submitted = self.client.submit_job(queue, self.job_input)
+        submit_errors = (httpx.HTTPStatusError,)
+        aqdrop_http = getattr(aqdrop, "AqdropHttpError", None)
+        if aqdrop_http is not None:
+            submit_errors = (httpx.HTTPStatusError, aqdrop_http)
+        try:
+            submitted = self.client.submit_job(queue, self.job_input)
+        except submit_errors as exc:
+            print("AQDrop API rejected job submission (job was not queued).")
+            print(_submit_error_user_message(exc))
+            raise SystemExit(1) from None
         self.job_id = submitted["id"]
         print(f"pushed job_input; assigned job_id={self.job_id}")
         print(f"   ./job_retrieve.py --id {self.job_id}")
@@ -98,8 +128,8 @@ class AqdropUser:
         """
         assert self.job is not None
         job_input = self.job["input"]
-        self.circL = self.client.extract_qiskit(job_input["qpy"])
-        self.inputMD = {k: v for k, v in job_input.items() if k != "qpy"}
+        self.circL = self.client.extract_qiskit(job_input["circ_inp_qpy"])
+        self.inputMD = {k: v for k, v in job_input.items() if k != "circ_inp_qpy"}
 
         output = self.job.get("output")
         if output is None:
@@ -109,9 +139,9 @@ class AqdropUser:
             return self.circL, self.inputMD, None, None
 
         self.transpiledL = (
-            self.client.extract_qiskit(output["transpiled_qpy"]) if "transpiled_qpy" in output else None
+            self.client.extract_qiskit(output["circ_transp_qpy"]) if "circ_transp_qpy" in output else None
         )
-        self.output = {k: v for k, v in output.items() if k != "transpiled_qpy"}
+        self.output = {k: v for k, v in output.items() if k != "circ_transp_qpy"}
         n_t = len(self.transpiledL) if self.transpiledL else 0
         print(f'parsed job: {len(self.circL)} input circuits, output present, {n_t} transpiled circuits')
         return self.circL, self.inputMD, self.output, self.transpiledL
@@ -130,8 +160,13 @@ class AqdropUser:
 
     def print_output_counts(self):
         assert self.output is not None
+        assert self.inputMD is not None
         counts_list = self.output["counts"]
+        asked_list = self.inputMD["shots"]
+        received_list = self.output["shots"]
         print(f"Output counts for {len(counts_list)} circuit(s)")
         for idx, counts in enumerate(counts_list):
-            print(f"circuit[{idx}]")
+            a = asked_list[idx]
+            r = received_list[idx]
+            print(f"circuit[{idx}] shots asked={a} received={r}")
             pprint(counts)

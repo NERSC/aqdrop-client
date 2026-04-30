@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 # HPC-Podman on PM: 
-#  time  podman-hpc  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1b	
+#  time  podman-hpc  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1c	
 # additionaly do 1 time:      podman-hpc migrate ubu24-aqdrop:p1
 # on macOS:  
 #    podman  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1d    --platform linux/arm64
@@ -68,5 +68,5 @@ RUN python3 -m venv "${VIRTUAL_ENV}" && \
 # -- AQDrop speciffic ---
 RUN python3 -m venv "${VIRTUAL_ENV}" && \
      pip install  aqdrop[qiskit] qiskit-aer qiskit-ibm-runtime
-
+RUN pip install --upgrade "aqdrop"
 CMD ["/bin/bash"]

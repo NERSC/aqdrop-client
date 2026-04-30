@@ -11,10 +11,12 @@ from AqdropUser import AqdropUser, print_circuit_table
 
 
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("-q", "--queue", required=True, help="The name of the queue to submit the Bell state job to.")
-    parser.add_argument("-n", "--shots", type=int, default=1024, help="The number of shots to submit with the job.")
-    parser.add_argument("-v", "--verb", type=int, default=1, help="Verbosity level. Use values >1 for extra output.")
-    parser.add_argument("-E", "--execJob", action='store_true', default=False, help="may take long time, test before use ")
+    p = parser.add_argument
+    p('-q',"--queue", default="X6Y3", help="Queue/chip name.")
+    p("-n", "--shots", type=int, default=1024, help="Base shot count (see per-circuit scaling in main).")
+    p("--pref_qubits", type=int, nargs="+", default=[1, 2], metavar="2 0 3", help="Preferred qubit list, or None")
+    p("-v", "--verb", type=int, default=1, help="Verbosity; use >1 for extra output.")
+    p("-E", "--execJob", action="store_true", help="Submit job; default is dry preview only.")
 
 
 def circ_bell():
@@ -47,9 +49,9 @@ def main(args):
     circL = [circ_bell(), circ_tens2(0, 0), circ_tens2(0, np.pi),
              circ_tens2(np.pi, 0), circ_tens2(np.pi, np.pi), circ_tens2(0.8, -2.5)]
 
-    shotL = [args.shots] + 4*[10*args.shots] + [100]
+    shotL = [args.shots] + 4*[4*args.shots] + [100]
     nCirc = len(circL)
-    job_meta = {"shots": shotL, "comment": "bell job and SPAM measurement", "queue_name": args.queue}
+    job_meta = {"shots": shotL, "comment": "bell job and SPAM measurement", "queue_name": args.queue, "pref_qubits": args.pref_qubits}
 
     print('M: execution-ready %d circuits to AQDrop queue=%s' % (nCirc, args.queue))
     if not args.execJob:

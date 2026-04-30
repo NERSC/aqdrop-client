@@ -3,7 +3,7 @@
 source ~/.ssh/aqdrop_user.creds
 env |grep AQDROP  # activate to see the creds
 
-IMG=ubu24-aqdrop:p2
+IMG=ubu24-aqdrop:p1c
 
 CFSH=/global/cfs/cdirs/mpccc/balewski/
 
@@ -31,9 +31,8 @@ eval podman-hpc run -it \
      -e AQDROP_USERNAME=$AQDROP_USERNAME\
      -e AQDROP_PASSWORD=$AQDROP_PASSWORD \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
-   --volume $CFSH/$BASE_DIR:$BASE_DIR \
-   --volume $CFSH/$WORK_DIR:$WORK_DIR \
-   --volume $CFSH/${DATA_VAULT}:${DATA_VAULT} \
+   --volume  $CFSH/myAQDrop/$BASE_DIR:$BASE_DIR \
+    --volume $CFSH/${DATA_VAULT}:${DATA_VAULT} \
    -e DISPLAY  --net=host -v $HOME:$HOME -e HOME  \
    --workdir $WORK_DIR \
    $IMG /bin/bash

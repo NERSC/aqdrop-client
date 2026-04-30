@@ -29,7 +29,7 @@ def main(args):
         print(qc.draw())
 
     circuits = [qc, qc]
-    job_meta = {"shots": [args.shots, 2*args.shots], "comment": "my 1st bell job", "queue_name": args.queue}
+    job_meta = {"shots": [args.shots, 2*args.shots], "comment": "my 1st bell job", "queue_name": args.queue, "pref_qubits": None}
 
     # 1) instantiate user (creates its own AQDrop client)
     user = AqdropUser(args.verb)
