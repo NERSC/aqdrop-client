@@ -49,7 +49,7 @@ def main(args):
     circL = [circ_bell(), circ_tens2(0, 0), circ_tens2(0, np.pi),
              circ_tens2(np.pi, 0), circ_tens2(np.pi, np.pi), circ_tens2(0.8, -2.5)]
 
-    shotL = [args.shots] + 4*[4*args.shots] + [100]
+    shotL = [args.shots] + 4*[4*args.shots] + [args.shots]
     nCirc = len(circL)
     job_meta = {"shots": shotL, "comment": "bell job and SPAM measurement", "queue_name": args.queue, "pref_qubits": args.pref_qubits}
 
