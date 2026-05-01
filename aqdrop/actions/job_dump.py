@@ -10,12 +10,12 @@ from aqdrop import creds
 def trim(s: str, w: int = 80):
     r = ""
     i = 0
-    for c in s:
+    for ch in s:
         if i > 0 and i % w == 0:
             r += "\n"
-        r += c
+        r += ch
         i += 1
-        if c == "\n":
+        if ch == "\n":
             i = 0
     return r
 
@@ -32,10 +32,10 @@ def main(args):
         print("--id must be an integer.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        job = c.get_job(job_id)
+        job = client.get_job(job_id)
     except httpx.HTTPStatusError as e:
         print(f"Could not get job.")
         resp = e.response

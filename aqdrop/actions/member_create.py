@@ -15,11 +15,11 @@ def add_args(parser):
 
 
 def main(args):
-    c = AqdropClient()
+    client = AqdropClient()
 
     try:
-        output = c.create_member(args.name, args.email)
-        c.update_member_perms(args.name, args.admin, args.operator)
+        output = client.create_member(args.name, args.email)
+        client.update_member_perms(args.name, args.admin, args.operator)
     except httpx.HTTPStatusError as e:
         print(f"Could not create member.")
         resp = e.response

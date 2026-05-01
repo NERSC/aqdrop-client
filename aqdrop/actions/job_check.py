@@ -22,10 +22,10 @@ def main(args):
         print("Job ID must be an integer.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        job = c.check_job(job_id)
+        job = client.check_job(job_id)
     except httpx.HTTPStatusError as e:
         print(f"Could not check job.")
         resp = e.response

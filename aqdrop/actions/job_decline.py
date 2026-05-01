@@ -23,10 +23,10 @@ def main(args):
         print("--id must be an integer.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        job = c.dispatch_job(job_id, defs.JobStatus(args.status), {"message": args.output})
+        job = client.dispatch_job(job_id, defs.JobStatus(args.status), {"message": args.output})
     except httpx.HTTPStatusError as e:
         print(f"Could not dispatch job.")
         resp = e.response

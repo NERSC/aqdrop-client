@@ -19,10 +19,10 @@ def main(args):
         print("--id must be an integer.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        job = c.cancel_job(job_id)
+        job = client.cancel_job(job_id)
     except httpx.HTTPStatusError as e:
         print(f"Could not cancel job.")
         resp = e.response

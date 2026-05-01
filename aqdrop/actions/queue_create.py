@@ -40,10 +40,10 @@ def main(args):
         print("--max_qubits must be an integer.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        submitted = c.add_queue(args.queue, default, limit, queue_type, max_qubits, description=args.description)
+        submitted = client.add_queue(args.queue, default, limit, queue_type, max_qubits, description=args.description)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
         resp = e.response

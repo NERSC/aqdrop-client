@@ -49,10 +49,10 @@ def main(args):
         print(f"Unrecognized suspended setting \"{args.suspended}.\"\nOptions are true, false.")
         exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        queues = c.update_member_perms(args.name, is_admin=admin, is_operator=operator, is_suspended=suspended)
+        queues = client.update_member_perms(args.name, is_admin=admin, is_operator=operator, is_suspended=suspended)
     except httpx.HTTPStatusError as e:
         print(f"Could not update member permissions.")
         resp = e.response

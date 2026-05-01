@@ -40,10 +40,10 @@ def main(args):
             print(f"Unrecognized queue state \"{args.state}.\"\nOptions are {', '.join(s.value for s in defs.QueueState)}.")
             exit()
 
-    c = cli_utils.connect_verbose()
+    client = cli_utils.connect_verbose()
 
     try:
-        submitted = c.update_queue(args.queue, args.new_name, default, limit, state)
+        submitted = client.update_queue(args.queue, args.new_name, default, limit, state)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
         resp = e.response

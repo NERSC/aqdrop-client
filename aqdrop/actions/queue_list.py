@@ -22,8 +22,8 @@ def main(args):
         exit()
     else: state = None
 
-    c = cli_utils.connect_verbose()
-    queues = c.list_queues(state)
+    client = cli_utils.connect_verbose()
+    queues = client.list_queues(state)
 
     print(f"Found {len(queues)} queues.")
     if len(queues) > 0:
