@@ -11,10 +11,6 @@ import tabulate
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-try:
-    from aqdrop.actions import aqdrop_util
-except ImportError:
-    import aqdrop_util
 from aqdrop import cli_utils
 from aqdrop import creds
 
@@ -33,7 +29,7 @@ def _format_member_row(member):
     for column in MEMBER_COLUMNS:
         value = member.get(column, "")
         if column in ("created_at", "updated_at"):
-            value = aqdrop_util.format_db_time_pt(value)
+            value = cli_utils.format_db_time_pt(value)
         row.append(value)
     return row
 

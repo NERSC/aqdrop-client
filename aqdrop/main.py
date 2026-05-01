@@ -243,7 +243,7 @@ class AqdropClient:
         req_json = {
                 "name": queue_name,
                 "default_access": default_access,
-                "limit_per_member": limit, 
+                "limit_per_member": limit,
                 "description": description,
                 "type": queue_type,
                 "max_qubits": max_qubits
@@ -280,19 +280,27 @@ class AqdropClient:
 
     # TODO: use pydantic for cleaner queries
     def query_jobs(self,
-                   id: int | None = None,
+                   id_min: int | None = None,
+                   id_max: int | None = None,
                    queue_name: str | None = None,
-                   queue_id: int | None = None,
                    owner_name: str | None = None,
                    owner_id: int | None = None,
-                   status: defs.JobStatus | None = None):
+                   status: defs.JobStatus | None = None,
+                   max_jobs: int | None = None,
+                       created_min: str | None = None,
+                       created_max: str | None = None,
+                       reverse: bool = False):
         req_params = {}
-        if id is not None: req_params["id"] = id
+        if id_min is not None: req_params["id_min"] = id_min
+        if id_max is not None: req_params["id_max"] = id_max
         if queue_name is not None: req_params["queue_name"] = queue_name
-        if queue_id is not None: req_params["queue_id"] = queue_id
         if owner_name is not None: req_params["owner_name"] = owner_name
         if owner_id is not None: req_params["owner_id"] = owner_id
         if status is not None: req_params["status"] = status.value
+        if max_jobs is not None: req_params["max_jobs"] = max_jobs
+        if created_min is not None: req_params["created_min"] = created_min
+        if created_max is not None: req_params["created_max"] = created_max
+        if reverse: req_params["reverse"] = "true"
         r = self._request("GET", "/jobs/", params=req_params)
         return r.json()
 
@@ -303,5 +311,4 @@ class AqdropClient:
         req_params = {}
         if limit is not None: req_params["limit"] = limit
         if skip is not None: req_params["skip"] = skip
-        r = self._request("GET", "/members/", params=req_params)
-        return r.json()
+        r = self._request("GET", "/members/", params=req_params).json()

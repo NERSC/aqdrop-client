@@ -2,7 +2,6 @@
 
 import argparse
 import httpx
-import tabulate
 
 from aqdrop import cli_utils
 from aqdrop import creds
@@ -29,7 +28,8 @@ def main(args):
         detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
         print(f"Error {resp.status_code}: {detail}.")
     else:
-        print(tabulate.tabulate([job.values()], headers=job.keys()))
+        job_meta = {k: v for k, v in job.items() if k not in ("input", "output")}
+        cli_utils.print_job_table([job_meta])
 
 
 if __name__ == "__main__":

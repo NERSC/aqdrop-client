@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-license = "MIT"
+license = "BSD-3-Clause"
 license-files = ["LICENSE*"]
 
 dependencies = [
@@ -33,10 +33,8 @@ qiskit = [
     "qiskit[core]>=2.3.1,<3"
 ]
 
-#operator = [
-#    "quantum-calibration>=1.0.6",
-#    "lbl-qubic>=25.8.0"
-#]
+[project.urls]
+Repository = "https://github.com/balewski/AQDrop"
 
 [tool.setuptools.dynamic]
 version = {attr = "aqdrop.__version__"}

@@ -7,18 +7,6 @@ import tabulate
 from aqdrop import cli_utils
 from aqdrop import creds
 
-def trim(s: str, w: int = 80):
-    r = ""
-    i = 0
-    for ch in s:
-        if i > 0 and i % w == 0:
-            r += "\n"
-        r += ch
-        i += 1
-        if ch == "\n":
-            i = 0
-    return r
-
 
 
 def add_args(parser: argparse.ArgumentParser):
@@ -52,14 +40,14 @@ def main(args):
 
         if job_in is not None:
             print("\nJOB INPUT")
-            print(tabulate.tabulate([[k, trim(str(v))] for k, v in job_in.items()], headers=["field", "value"]))
+            print(tabulate.tabulate([[k, cli_utils.trim(str(v))] for k, v in job_in.items()], headers=["field", "value"]))
 
         if job_out is not None:
             for k, v in job_out.items():
                 if type(v) == dict:
                     job_out[k] = tabulate.tabulate([[kk, vv] for kk, vv in v.items()], tablefmt="plain")
             print("\nJOB OUTPUT")
-            print(tabulate.tabulate([[k, trim(str(v))] for k, v in job_out.items()], headers=["field", "value"]))
+            print(tabulate.tabulate([[k, cli_utils.trim(str(v))] for k, v in job_out.items()], headers=["field", "value"]))
 
         print()
 
