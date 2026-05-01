@@ -10,7 +10,7 @@ from AqdropUser import AqdropUser
 
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("-q", "--queue", required=True, help="The name of the queue to submit the Bell state job to.")
-    parser.add_argument("-n", "--shots", type=int, default=1024, help="The number of shots to submit with the job.")
+    parser.add_argument("-n", "--shots", type=int, default=4000, help="The number of shots to submit with the job.")
     parser.add_argument("-v", "--verb", type=int, default=1, help="Verbosity level. Use values >1 for extra output.")
 
 
@@ -28,8 +28,8 @@ def main(args):
     if args.verb > 1:
         print(qc.draw())
 
-    circuits = [qc, qc]
-    job_meta = {"shots": [args.shots, 2*args.shots], "comment": "my 1st bell job", "queue_name": args.queue, "pref_qubits": None}
+    circuits = [qc]
+    job_meta = {"shots": [args.shots], "comment": "my 1st bell job", "queue_name": args.queue, "pref_qubits": None}
 
     # 1) instantiate user (creates its own AQDrop client)
     user = AqdropUser(args.verb)
