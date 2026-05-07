@@ -7,3 +7,4 @@ aqdrop.egg-info/
 .codex
 old/
 *~
+.ipynb_checkpoints/
