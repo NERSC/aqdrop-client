@@ -3,7 +3,7 @@
 source ~/.ssh/aqdrop_user.creds
 env |grep AQDROP  # activate to see the creds
 
-IMG=ubu24-aqdrop:p1d
+IMG=ubu24-aqdrop:p1c
 
 CFSH=/global/cfs/cdirs/mpccc/balewski/
 
