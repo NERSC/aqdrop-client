@@ -2,7 +2,6 @@
 
 import argparse
 import httpx
-import tabulate
 
 from aqdrop import cli_utils
 from aqdrop import creds
@@ -10,6 +9,7 @@ from aqdrop import creds
 
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--id", help="The ID of the job.")
+    parser.add_argument("--message", help="The reset message for the job.")
 
 
 def main(args):
@@ -22,14 +22,15 @@ def main(args):
     client = cli_utils.connect_verbose()
 
     try:
-        job = client.cancel_job(job_id)
+        job = client.reset_job(job_id, comment=args.message)
     except httpx.HTTPStatusError as e:
-        print(f"Could not cancel job.")
+        print(f"Could not reset job.")
         resp = e.response
         detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
         print(f"Error {resp.status_code}: {detail}.")
     else:
-        print(tabulate.tabulate([job.values()], headers=job.keys()))
+        job_meta = {k: v for k, v in job.items() if k not in ("input", "output")}
+        cli_utils.print_job_table([job_meta])
 
 
 if __name__ == "__main__":

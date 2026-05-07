@@ -17,6 +17,8 @@ def main(args):
         state = defs.QueueState.OPEN
     elif args.state == "down":
         state = defs.QueueState.DOWN
+    elif args.state == "retired":
+        state = defs.QueueState.RETIRED
     elif args.state is not None:
         print(f"Unrecognized queue state \"{args.state}.\"\nOptions are {', '.join(s.value for s in defs.QueueState)}.")
         exit()

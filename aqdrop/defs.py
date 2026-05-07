@@ -7,11 +7,13 @@ class JobStatus(str, enum.Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
     DECLINED = "declined"
+    RESET = "reset"
 
 
 class QueueState(str, enum.Enum):
     OPEN = "open"
     DOWN = "down"
+    RETIRED = "retired"
 
 
 class QueueType(str, enum.Enum):

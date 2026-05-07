@@ -16,6 +16,11 @@ def connect_verbose():
         print("Could not connect to AQDROP service. Is environment variable AQDROP_HOSTNAME properly set?")
         print(f"Error: {e}")
         exit()
+    except httpx.HTTPStatusError as e:
+        resp = e.response
+        detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
+        print(f"Could not connect to AQDROP service. Error {resp.status_code}: {detail}")
+        exit()
     return c
 
 def format_db_time_pt(db_time):

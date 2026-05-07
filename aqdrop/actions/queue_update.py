@@ -10,17 +10,11 @@ from aqdrop import creds
 
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--queue", help="The name of the queue to update.")
-    parser.add_argument("--new_name", default=None, help="The new name for the queue.")
-    parser.add_argument("--default", default=None, help="(true/false): if set to true, all users can access the queue unless explicitly set otherwise.")
     parser.add_argument("--limit", default=None, help="An integer representing the max number of jobs any user can submit.")
-    parser.add_argument("--state", default=None, help="The state of the queue (e.g., open, down).")
+    parser.add_argument("--state", default=None, help="The state of the queue (e.g., open, down, retired).")
 
 
 def main(args):
-
-    default = None
-    if args.default is not None:
-        default = True if args.default.lower() == "true" else False
 
     limit = None
     if args.limit is not None:
@@ -36,6 +30,8 @@ def main(args):
             state = defs.QueueState.OPEN
         elif args.state == "down":
             state = defs.QueueState.DOWN
+        elif args.state == "retired":
+            state = defs.QueueState.RETIRED
         else:
             print(f"Unrecognized queue state \"{args.state}.\"\nOptions are {', '.join(s.value for s in defs.QueueState)}.")
             exit()
@@ -43,7 +39,7 @@ def main(args):
     client = cli_utils.connect_verbose()
 
     try:
-        submitted = client.update_queue(args.queue, args.new_name, default, limit, state)
+        submitted = client.update_queue(args.queue, limit, state)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
         resp = e.response

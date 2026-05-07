@@ -227,6 +227,14 @@ class AqdropClient:
         return r.json()
 
 
+    def reset_job(self, job_id: int, comment: str | None = None):
+        req_json = {"id": job_id}
+        if comment is not None:
+            req_json["comment"] = comment
+        r = self._request("PATCH", "/job/reset/", json=req_json)
+        return r.json()
+
+
     def dispatch_job(self, job_id: int,
                      status: defs.JobStatus,
                      output: dict | None = None):
@@ -265,14 +273,10 @@ class AqdropClient:
 
     # TODO: use pydantic for cleaner queries
     def update_queue(self, queue_name: str,
-                     new_name: str | None = None,
-                     new_default_access: bool | None = None,
                      new_limit: int | None = None,
                      new_state: defs.QueueState | None = None):
         req_json = {}
-        if new_name is not None: req_json["name"] = new_name
-        if new_default_access is not None: req_json["default_access"] = new_default_access
-        if new_limit is not None: req_json["limit"] = new_limit
+        if new_limit is not None: req_json["limit_per_member"] = new_limit
         if new_state is not None: req_json["state"] = new_state.value
         r = self._request("PATCH", f"/queue/{queue_name}", json=req_json)
         return r.json()
@@ -311,4 +315,5 @@ class AqdropClient:
         req_params = {}
         if limit is not None: req_params["limit"] = limit
         if skip is not None: req_params["skip"] = skip
-        r = self._request("GET", "/members/", params=req_params).json()
+        r = self._request("GET", "/members/", params=req_params)
+        return r.json()

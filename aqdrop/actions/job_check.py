@@ -32,7 +32,13 @@ def main(args):
         detail = resp.json().get('detail') if 'application/json' in resp.headers.get('content-type', '') else resp.text
         print(f"Error {resp.status_code}: {detail}.")
     else:
-        print(tabulate.tabulate([job.values()], headers=job.keys()))
+        formatted_job = {}
+        for k, v in job.items():
+            if k == "last_action":
+                formatted_job[k] = cli_utils.format_db_time_pt(v)
+            else:
+                formatted_job[k] = v
+        print(tabulate.tabulate([formatted_job.values()], headers=formatted_job.keys()))
 
 
 if __name__ == "__main__":
