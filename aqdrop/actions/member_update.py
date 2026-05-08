@@ -7,11 +7,15 @@ import tabulate
 from aqdrop import AqdropClient, defs, creds, cli_utils
 
 
+def action_info():
+    return {"operator": False, "user": False, "description": "Update member permissions"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--name", help="The username of the member.")
-    parser.add_argument("--operator", default=None, help="(true/false): if set to true, the user is an operator.")
-    parser.add_argument("--admin", default=None, help="(true/false): if set to true, the user is an admin.")
-    parser.add_argument("--suspended", default=None, help="(true/false): if set to true, the user is suspended.")
+    parser.add_argument("-u", "--name", help="The username of the member.")
+    parser.add_argument("-o", "--operator", default=None, help="(true/false): if set to true, the user is an operator.")
+    parser.add_argument("-a", "--admin", default=None, help="(true/false): if set to true, the user is an admin.")
+    parser.add_argument("-x", "--suspended", default=None, help="(true/false): if set to true, the user is suspended.")
 
 
 def main(args):

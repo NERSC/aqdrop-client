@@ -7,9 +7,13 @@ from aqdrop import cli_utils
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": True, "user": False, "description": "Reset a job"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--id", help="The ID of the job.")
-    parser.add_argument("--message", help="The reset message for the job.")
+    parser.add_argument("-i", "--id", help="The ID of the job.")
+    parser.add_argument("-m", "--message", help="The reset message for the job.")
 
 
 def main(args):

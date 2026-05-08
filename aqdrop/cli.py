@@ -1,4 +1,4 @@
-#/usr/bin/env python3
+#!/usr/bin/env python3
 
 import importlib
 import argparse
@@ -8,8 +8,18 @@ def print_available_actions():
     print("The following actions are available. For more detailed usage information, type \"aqdrop <action> --help\".")
     import aqdrop.actions
     import pkgutil
+    import importlib
+
+    header = f" {'Action':<20} {'Admin':<10} {'Operator':<10} {'User':<10} {'Description':<40}"
+    print(header)
+    print("-" * len(header))
+
     for info in pkgutil.iter_modules(path=aqdrop.actions.__path__):
-        print(f"\t{info.name}")
+        module = importlib.import_module(f"aqdrop.actions.{info.name}")
+        action_info = getattr(module, "action_info")()
+        op_yes = "Yes" if action_info['operator'] else "No"
+        user_yes = "Yes" if action_info['user'] else "No"
+        print(f" {info.name:<20} {'Yes':<10} {op_yes:<10} {user_yes:<10} {action_info['description']:<40}")
 
 
 def main():

@@ -247,10 +247,10 @@ class AqdropClient:
         return r.json()
 
 
-    def add_queue(self, queue_name: str, default_access: bool, limit: int, queue_type: defs.QueueType, max_qubits: int, description: str = ""):
+    def add_queue(self, queue_name: str,  limit: int, queue_type: defs.QueueType, max_qubits: int, description: str = ""):
         req_json = {
                 "name": queue_name,
-                "default_access": default_access,
+                "default_access": True,
                 "limit_per_member": limit,
                 "description": description,
                 "type": queue_type,
@@ -309,11 +309,6 @@ class AqdropClient:
         return r.json()
 
 
-    def list_members(self,
-                     limit: int | None = None,
-                     skip: int | None = None):
-        req_params = {}
-        if limit is not None: req_params["limit"] = limit
-        if skip is not None: req_params["skip"] = skip
-        r = self._request("GET", "/members/", params=req_params)
+    def list_members(self):
+        r = self._request("GET", "/members/")
         return r.json()

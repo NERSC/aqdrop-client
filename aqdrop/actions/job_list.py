@@ -12,20 +12,25 @@ from aqdrop import cli_utils
 from aqdrop import defs
 
 
+def action_info():
+    return {"operator": True, "user": True, "description": "List and filter jobs"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--id-min", type=int, help="Minimum job ID.")
-    parser.add_argument("--id-max", type=int, help="Maximum job ID.")
-    parser.add_argument("--queue", help="The name of the queue to list jobs for.")
-    parser.add_argument("--user", help="The username to list jobs for.")
+    parser.add_argument("-I", "--id-min", type=int, help="Minimum job ID.")
+    parser.add_argument("-A", "--id-max", type=int, help="Maximum job ID.")
+    parser.add_argument("-q", "--queue", help="The name of the queue to list jobs for.")
+    parser.add_argument("-u", "--user", help="The username to list jobs for.")
     parser.add_argument(
+        "-s",
         "--status",
         choices=[status.value for status in defs.JobStatus],
         help="The job status to list jobs for.",
     )
-    parser.add_argument("--max-jobs", type=int, help="Maximum number of jobs to return.")
-    parser.add_argument("--created-min", help="Filter jobs created after this time.")
-    parser.add_argument("--created-max", help="Filter jobs created before this time.")
-    parser.add_argument("--reverse", action="store_true", help="Reverse the order of results.")
+    parser.add_argument("-l", "--max-jobs", type=int, help="Maximum number of jobs to return.")
+    parser.add_argument("-C", "--created-min", help="Filter jobs created after this time.")
+    parser.add_argument("-X", "--created-max", help="Filter jobs created before this time.")
+    parser.add_argument("-r", "--reverse", action="store_true", help="Reverse the order of results.")
 
 
 def main(args):

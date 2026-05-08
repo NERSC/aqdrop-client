@@ -7,11 +7,15 @@ from aqdrop import AqdropClient
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": False, "user": False, "description": "Create a new member"}
+
+
 def add_args(parser):
-    parser.add_argument("--name", help="The username of the new member.")
-    parser.add_argument("--email", default=None, help="The email address of the new member.")
-    parser.add_argument("--operator", action="store_true", help="Set this flag to make the new user an operator.")
-    parser.add_argument("--admin", action="store_true", help="Set this flag to make the new user an admin.")
+    parser.add_argument("-u", "--name", help="The username of the new member.")
+    parser.add_argument("-e", "--email", default=None, help="The email address of the new member.")
+    parser.add_argument("-o", "--operator", action="store_true", help="Set this flag to make the new user an operator.")
+    parser.add_argument("-a", "--admin", action="store_true", help="Set this flag to make the new user an admin.")
 
 
 def main(args):

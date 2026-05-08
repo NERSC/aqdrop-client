@@ -8,18 +8,19 @@ from aqdrop import cli_utils, defs
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": False, "user": False, "description": "Create a new queue"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--queue", help="The name of the queue.")
-    parser.add_argument("--default", help="(true/false): if set to true, all users can access the queue unless explicitly set otherwise.")
-    parser.add_argument("--limit", help="An integer representing the max number of jobs any user can submit.")
-    parser.add_argument("--description", default="", help="A description for the queue.")
-    parser.add_argument("--max_qubits", help="The maximum number of qubits available on this chip / simulator.")
-    parser.add_argument("--type", help="qpu if jobs will run on quantum hardware, simu if jobs will run on a simulator.")
+    parser.add_argument("-q", "--queue", help="The name of the queue.")
+    parser.add_argument("-l", "--limit", help="An integer representing the max number of jobs any user can submit.")
+    parser.add_argument("-d", "--description", default="", help="A description for the queue.")
+    parser.add_argument("-Q", "--max_qubits", help="The maximum number of qubits available on this chip / simulator.")
+    parser.add_argument("-t", "--type", help="qpu if jobs will run on quantum hardware, simu if jobs will run on a simulator.")
 
 
 def main(args):
-    default = True if args.default.lower() == "true" else False
-
     if args.type == "qpu":
         queue_type = defs.QueueType.QPU
     elif args.type == "simu":
@@ -43,7 +44,7 @@ def main(args):
     client = cli_utils.connect_verbose()
 
     try:
-        submitted = client.add_queue(args.queue, default, limit, queue_type, max_qubits, description=args.description)
+        submitted = client.add_queue(args.queue, limit, queue_type, max_qubits, description=args.description)
     except httpx.HTTPStatusError as e:
         print(f"Could not add queue.")
         resp = e.response

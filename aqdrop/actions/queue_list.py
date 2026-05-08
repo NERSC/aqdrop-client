@@ -7,8 +7,12 @@ from aqdrop import cli_utils, defs
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": True, "user": True, "description": "List available queues"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--state", default=None, help="The state of the queues to list (e.g., open, down).")
+    parser.add_argument("-s", "--state", default=None, help="The state of the queues to list (e.g., open, down).")
 
 
 def main(args):

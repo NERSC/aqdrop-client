@@ -8,9 +8,13 @@ from aqdrop import creds
 
 
 
+def action_info():
+    return {"operator": True, "user": False, "description": "Decline a job"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--id", help="The ID of the job.")
-    parser.add_argument("--output", help="The output message for the job.")
+    parser.add_argument("-i", "--id", help="The ID of the job.")
+    parser.add_argument("-O", "--output", help="The output message for the job.")
 
 
 def main(args):

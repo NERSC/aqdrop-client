@@ -12,7 +12,7 @@ class JobStatus(str, enum.Enum):
 
 class QueueState(str, enum.Enum):
     OPEN = "open"
-    DOWN = "down"
+    CLOSED = "closed"
     RETIRED = "retired"
 
 

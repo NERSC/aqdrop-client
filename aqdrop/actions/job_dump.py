@@ -9,6 +9,10 @@ from aqdrop import creds
 
 
 
+def action_info():
+    return {"operator": True, "user": True, "description": "Dump detailed job information"}
+
+
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("--id", help="The ID of the job.")
 

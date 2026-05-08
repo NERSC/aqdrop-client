@@ -8,10 +8,14 @@ from aqdrop import cli_utils, defs
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": False, "user": False, "description": "Update queue settings"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--queue", help="The name of the queue to update.")
-    parser.add_argument("--limit", default=None, help="An integer representing the max number of jobs any user can submit.")
-    parser.add_argument("--state", default=None, help="The state of the queue (e.g., open, down, retired).")
+    parser.add_argument("-q", "--queue", help="The name of the queue to update.")
+    parser.add_argument("-l", "--limit", default=None, help="An integer representing the max number of jobs any user can submit.")
+    parser.add_argument("-s", "--state", default=None, help="The state of the queue (e.g., open, closed, retired).")
 
 
 def main(args):
@@ -28,8 +32,8 @@ def main(args):
     if args.state is not None:
         if args.state == "open":
             state = defs.QueueState.OPEN
-        elif args.state == "down":
-            state = defs.QueueState.DOWN
+        elif args.state == "closed":
+            state = defs.QueueState.CLOSED
         elif args.state == "retired":
             state = defs.QueueState.RETIRED
         else:

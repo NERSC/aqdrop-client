@@ -19,9 +19,12 @@ MEMBER_COLUMNS = ("name", "is_operator", "is_admin", "email", "id", "created_at"
 MEMBER_HEADERS = ("name", "operator", "admin", "email", "id", "created_at", "updated_at")
 
 
+def action_info():
+    return {"operator": True, "user": False, "description": "List all members"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--skip", default=0, help="The number of members to skip.")
-    parser.add_argument("--limit", default=None, help="The maximum number of members to return.")
+    pass
 
 
 def _format_member_row(member):
@@ -40,23 +43,10 @@ def _print_member_table(members):
 
 
 def main(args):
-
-    try:
-        skip = int(args.skip)
-    except TypeError:
-        print("--skip must be an integer.")
-        exit()
-
-    try:
-        limit = int(args.limit) if args.limit is not None else None
-    except TypeError:
-        print("--limit must be an integer.")
-        exit()
-
     client = cli_utils.connect_verbose()
 
     try:
-        members = client.list_members(limit=limit, skip=skip)
+        members = client.list_members()
     except httpx.HTTPStatusError as e:
         print(f"Could not list members.")
         resp = e.response

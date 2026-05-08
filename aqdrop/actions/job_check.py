@@ -8,8 +8,12 @@ from aqdrop import cli_utils
 from aqdrop import creds
 
 
+def action_info():
+    return {"operator": True, "user": True, "description": "Check job status and output"}
+
+
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("--id", help="ID of the job.")
+    parser.add_argument("-i", "--id", help="ID of the job.")
 
 
 def main(args):
