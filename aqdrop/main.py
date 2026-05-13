@@ -138,7 +138,7 @@ class AqdropClient:
         return post_resp.json()
 
 
-    def _embed_qiskit(self, qc: typing.List[qiskit.QuantumCircuit]):
+    def embed_qiskit(self, qc: typing.List[qiskit.QuantumCircuit]):
         try:
             import qiskit
             import qiskit.qpy
@@ -192,7 +192,7 @@ class AqdropClient:
         # raise exceptions if the job submission is badly formatted
         self._validate_qiskit(queue_name, qc, meta)
 
-        qc_embedded = self._embed_qiskit(qc)
+        qc_embedded = self.embed_qiskit(qc)
         job_dd = dict(**meta, qpy=qc_embedded)
         submitted = self.submit_job(queue_name, job_dd)
 
@@ -211,7 +211,7 @@ class AqdropClient:
         job_dd: dict = get_request.json()
 
         if extract_qpy:
-            qc = self.extract_qiskit(job_dd["qpy"])
+            qc = self.extract_qiskit(job_dd["output"]["qpy"])
             job_dd.update({"qc": qc})
 
         return job_dd

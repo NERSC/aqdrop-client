@@ -19,8 +19,8 @@ def main(args):
 
     if args.state == "open":
         state = defs.QueueState.OPEN
-    elif args.state == "down":
-        state = defs.QueueState.DOWN
+    elif args.state == "closed":
+        state = defs.QueueState.CLOSED
     elif args.state == "retired":
         state = defs.QueueState.RETIRED
     elif args.state is not None:
