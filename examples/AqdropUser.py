@@ -128,7 +128,10 @@ class AqdropUser:
         """
         assert self.job is not None
         job_input = self.job["input"]
-        self.circL = self.client.extract_qiskit(job_input["circ_inp_qpy"])
+
+        buffer = io.BytesIO()
+        buffer.write(base64.b64decode(job_input["circ_inp_qpy"]))
+        self.circL = qpy.load(buffer)
         self.inputMD = {k: v for k, v in job_input.items() if k != "circ_inp_qpy"}
 
         output = self.job.get("output")
@@ -138,9 +141,14 @@ class AqdropUser:
             print(f'parsed job: {len(self.circL)} input circuits, no output yet (status={self.job["status"]})')
             return self.circL, self.inputMD, None, None
 
-        self.transpiledL = (
-            self.client.extract_qiskit(output["circ_transp_qpy"]) if "circ_transp_qpy" in output else None
-        )
+        if "circ_transp_qpy" in output:
+            buffer = io.BytesIO()
+            buffer.write(base64.b64decode(output["circ_inp_qpy"]))
+            self.transpiledL = (
+                qpy.load(buffer)
+            )
+        else:
+            self.transpiledL = None
         self.output = {k: v for k, v in output.items() if k != "circ_transp_qpy"}
         n_t = len(self.transpiledL) if self.transpiledL else 0
         print(f'parsed job: {len(self.circL)} input circuits, output present, {n_t} transpiled circuits')
