@@ -1,6 +1,7 @@
 import httpx
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+from pprint import pprint
 from . import creds
 
 PT_TIMEZONE = ZoneInfo("America/Los_Angeles")
@@ -57,6 +58,58 @@ def trim(s: str, w: int = 80):
         if ch == "\n":
             i = 0
     return r
+
+def get_submit_error_message(exc: BaseException) -> str:
+    """Best-effort API error text (works with httpx.HTTPStatusError or aqdrop.AqdropHttpError)."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        try:
+            data = exc.response.json()
+        except Exception:
+            text = (exc.response.text or "").strip()
+            return text[:2000] if text else str(exc)
+        if isinstance(data, dict) and "detail" in data:
+            d = data["detail"]
+            if isinstance(d, str):
+                return d
+            if isinstance(d, list):
+                return "; ".join(str(x.get("msg", x)) if isinstance(x, dict) else str(x) for x in d)
+            return str(d)
+        return str(data) if data is not None else str(exc)
+    return str(exc)
+
+def print_circuit_table(circuits, meta: dict):
+    """Pretty-print circuit list with their requested shots."""
+    shots = meta.get("shots", [])
+    if isinstance(shots, int):
+        shots = [shots] * len(circuits)
+    print("idx  num_qubits  num_shots")
+    for idx, qc in enumerate(circuits):
+        num_shots = shots[idx] if idx < len(shots) else "n/a"
+        print(f"{idx:>3}  {qc.num_qubits:>10}  {num_shots}")
+
+def print_shot_summary(input_md: dict, output: dict):
+    """Compare asked vs received shots."""
+    asked = input_md["shots"]
+    received = output["shots"]
+    print(f"shots asked={asked}")
+    print(f"received={received}")
+    if asked != received:
+        missing = [a - r for a, r in zip(asked, received)]
+        print(f"missing={missing}")
+
+def print_output_counts(input_md: dict, output: dict):
+    """Pretty-print counts for each circuit."""
+    counts_list = output["counts"]
+    asked_list = input_md["shots"]
+    received_list = output["shots"]
+    print(f"Output counts for {len(counts_list)} circuit(s)")
+    for idx, counts in enumerate(counts_list):
+        a = asked_list[idx]
+        r = received_list[idx]
+        print(f"circuit[{idx}] shots asked={a} received={r}")
+        pprint(counts)
+
+def _format_table_row(values, widths, alignments):
 
 def _format_table_row(values, widths, alignments):
     fields = []

@@ -125,6 +125,30 @@ class AqdropClient:
             if job_input["queue_name"] != queue_name:
                 raise ValueError(f"queue_name in job_input must match queue_name provided in submit_job arguments.")
 
+    def assemble_job_input(self, circL, inpMD: dict) -> tuple[dict, list, dict]:
+        try:
+            from qiskit import QuantumCircuit
+        except ImportError:
+            raise ImportError("qiskit is required for this method. Please run 'pip install qiskit' or install aqdrop[qiskit].")
+
+        circuits = [circL] if isinstance(circL, QuantumCircuit) else list(circL)
+        assert "queue_name" in inpMD, "inpMD must contain 'queue_name'"
+        assert "pref_qubits" in inpMD, "inpMD must contain 'pref_qubits'"
+
+        meta = dict(inpMD)
+        shots = meta.get("shots")
+        if isinstance(shots, int):
+            shots = [shots] * len(circuits)
+        assert isinstance(shots, list) and len(shots) == len(circuits), "shots must be a list matching the number of circuits"
+
+        meta["shots"] = shots
+        meta.setdefault("comment", None)
+        meta["num_qubits"] = [qc.num_qubits for qc in circuits]
+
+        qpy_blob = self.embed_qiskit(circuits)
+        job_input = {"circ_inp_qpy": qpy_blob, **meta}
+
+        return job_input, circuits, meta
 
     # TODO: update job_input type?
     def submit_job(self, queue_name: str, job_input: dict):
@@ -138,19 +162,16 @@ class AqdropClient:
         return post_resp.json()
 
 
-    def _embed_qiskit(self, qc: typing.List[qiskit.QuantumCircuit]):
+    def embed_qiskit(self, qc: typing.List[qiskit.QuantumCircuit]):
         try:
             import qiskit
             import qiskit.qpy
         except ImportError:
             raise ImportError("qiskit is required for this method. Please run 'pip install qiskit' or install aqdrop[qiskit].")
 
-        with tempfile.NamedTemporaryFile(delete_on_close=False) as tf:
-            qiskit.qpy.dump(qc, tf)
-            tf.close()
-            with open(tf.name, 'rb') as tfr:
-                qc_embedded = base64.b64encode(tfr.read())
-        return qc_embedded.decode()
+        buffer = io.BytesIO()
+        qiskit.qpy.dump(qc, buffer)
+        return base64.b64encode(buffer.getvalue()).decode()
 
 
     def extract_qiskit(self, b: str) -> typing.List[qiskit.QuantumCircuit]:
@@ -190,11 +211,8 @@ class AqdropClient:
 
     def submit_qiskit(self, queue_name: str, qc: typing.List[qiskit.QuantumCircuit], meta: dict):
         # raise exceptions if the job submission is badly formatted
-        self._validate_qiskit(queue_name, qc, meta)
-
-        qc_embedded = self._embed_qiskit(qc)
-        job_dd = dict(**meta, qpy=qc_embedded)
-        submitted = self.submit_job(queue_name, job_dd)
+        job_input, _, _ = self.assemble_job_input(qc, meta)
+        submitted = self.submit_job(queue_name, job_input)
 
         return submitted
 
@@ -216,6 +234,22 @@ class AqdropClient:
 
         return job_dd
 
+
+    def parse_job(self, job: dict) -> tuple[list, dict, dict | None, list | None]:
+        job_input = job["input"]
+        circL = self.extract_qiskit(job_input["circ_inp_qpy"])
+        inputMD = {k: v for k, v in job_input.items() if k != "circ_inp_qpy"}
+
+        output = job.get("output")
+        if output is None:
+            return circL, inputMD, None, None
+
+        transpiledL = (
+            self.extract_qiskit(output["circ_transp_qpy"]) if "circ_transp_qpy" in output else None
+        )
+        output_md = {k: v for k, v in output.items() if k != "circ_transp_qpy"}
+
+        return circL, inputMD, output_md, transpiledL
 
     def check_job(self, job_id: int):
         get_request = self._request("GET", f"/job/check/?job_id={job_id}")
