@@ -129,8 +129,7 @@ class AqdropUser:
         assert self.job is not None
         job_input = self.job["input"]
 
-        buffer = io.BytesIO()
-        buffer.write(base64.b64decode(job_input["circ_inp_qpy"]))
+        buffer = io.BytesIO(base64.b64decode(job_input["circ_inp_qpy"]))
         self.circL = qpy.load(buffer)
         self.inputMD = {k: v for k, v in job_input.items() if k != "circ_inp_qpy"}
 
@@ -142,8 +141,7 @@ class AqdropUser:
             return self.circL, self.inputMD, None, None
 
         if "circ_transp_qpy" in output:
-            buffer = io.BytesIO()
-            buffer.write(base64.b64decode(output["circ_inp_qpy"]))
+            buffer = io.BytesIO(base64.b64decode(job_input["circ_inp_qpy"]))
             self.transpiledL = (
                 qpy.load(buffer)
             )
