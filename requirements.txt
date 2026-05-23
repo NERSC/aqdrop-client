@@ -1,4 +1,6 @@
+authlib>=1.6.0
 httpx>=0.28.1
+requests>=2.32.0
 tabulate>=0.10.0
 qiskit
 quantum-calibration>=1.0.6

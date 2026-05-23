@@ -29,11 +29,10 @@ done
 
 eval podman-hpc run -it \
      -e AQDROP_USERNAME=$AQDROP_USERNAME\
-     -e AQDROP_PASSWORD=$AQDROP_PASSWORD \
+     -e NERSC_OIDC_TOKEN=$NERSC_OIDC_TOKEN \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
    --volume  $CFSH/myAQDrop/$BASE_DIR:$BASE_DIR \
     --volume $CFSH/${DATA_VAULT}:${DATA_VAULT} \
     -e DISPLAY  --net=host -v $HOME:$HOME -e HOME  \
    --workdir $WORK_DIR \
    $IMG /bin/bash
-

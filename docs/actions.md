@@ -2,6 +2,28 @@
 
 The `aqdrop` command line interface provides a set of tools for managing jobs, members, and queues within the AQDrop system.
 
+## Authentication
+
+The CLI uses the same auth configuration as `aqdrop.AqdropClient`.
+
+Set `AQDROP_HOSTNAME` plus one of these auth options before running CLI
+commands:
+
+Direct token:
+
+```bash
+export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export NERSC_OIDC_TOKEN=<your-token>
+```
+
+SFAPI client credentials:
+
+```bash
+export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_CLIENT_ID=<your-sfapi-client-id>
+export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
+```
+
 ## General Usage
 
 The CLI follows a simple action-based pattern:

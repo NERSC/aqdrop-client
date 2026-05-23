@@ -5,7 +5,7 @@ The overall solution spans three complementary layers.
 
 The thin Python SDK is packaged with setuptools for pip installation (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for members, queues, and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
 
-The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. OAuth2-style password flows issue signed JWTs; role checks separate ordinary members, operators, and administrators. Job, queue, and member endpoints persist state through CRUD layers against PostgreSQL. Container definitions bundle the API service, database image, and optional browser-facing tier with orchestration scripts for local or staged rollout.
+The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. NERSC OIDC bearer-token authentication identifies callers, while role checks separate ordinary members, operators, and administrators. Job, queue, and member endpoints persist state through CRUD layers against PostgreSQL. Container definitions bundle the API service, database image, and optional browser-facing tier with orchestration scripts for local or staged rollout.
 
 The browser tier is a Flask application served with Gunicorn. Sessions hold API tokens; pages render dashboards for queues and jobs and offer flows to inspect queues and submit or view jobs. Those views call the same Python SDK against the configured API URL.
 

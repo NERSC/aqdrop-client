@@ -11,17 +11,52 @@ operator. AQDrop is a human-operated API on both ends of the service.
 Ask the AQDrop service administrator for:
 
 - your AQDrop username
-- your AQDrop password
+- either a valid NERSC OIDC bearer token
+- or an SFAPI client ID plus the matching private key file
 - the AQDrop API hostname
 
 You will receive these values from the AQDrop administrator. The AQDrop Python
-client reads credentials from these environment variables:
+client can authenticate in either of these ways.
+
+Direct token:
 
 ```bash
 export AQDROP_USERNAME=<your-user-name>
-export AQDROP_PASSWORD=<your-password>
+export NERSC_OIDC_TOKEN=<your-nersc-token>
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
+
+SFAPI token fetch from client credentials:
+
+```bash
+export AQDROP_USERNAME=<your-user-name>
+export AQDROP_CLIENT_ID=<your-sfapi-client-id>
+export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
+export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+```
+
+The SDK also accepts `token=...` directly, or `client_id=...` together with
+`private_key_path=...` when you construct `aqdrop.AqdropClient(...)`.
+
+Programmatic examples:
+
+```python
+import aqdrop
+
+client = aqdrop.AqdropClient(token="<nersc-oidc-token>")
+```
+
+```python
+import aqdrop
+
+client = aqdrop.AqdropClient(
+    client_id="<sfapi-client-id>",
+    private_key_path="/path/to/private-key.pem",
+)
+```
+
+In the SFAPI case, the private key should live in a user-private file outside
+the repository, not in source control and not embedded in a container image.
 
 > **Credential safety**
 >
@@ -31,7 +66,8 @@ export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 Prefer storing credentials in your personal `.ssh` directory and sourcing them
 at the start of each session.
 
-For example, create `~/.ssh/aqdrop.creds` with these three variables.
+For example, create `~/.ssh/aqdrop.creds` with either the direct token form or
+the SFAPI client-credentials form shown above.
 Restrict access to the file:
 
 ```bash
@@ -48,6 +84,10 @@ For container use, source the credentials on the host and pass the environment
 variables into the container at runtime. Inspect `examples/pm_balewski.src` to
 see how to source credentials before the image is launched and pass the
 environment variables to the image at execution time.
+
+If you use the SFAPI client-credential flow inside a container, mount the
+private-key file into the container and pass its mounted path through
+`AQDROP_PRIVATE_KEY_PATH`.
 
 ## Laptop Setup
 
@@ -97,7 +137,8 @@ repository includes `pm_balewski.src` as a user-specific launcher:
 ```
 
 Adapt that image starting script for your account, paths, image tag, and credential source.
-The launcher should pass `AQDROP_USERNAME`, `AQDROP_PASSWORD`, and
+The launcher should pass `AQDROP_USERNAME` and either `NERSC_OIDC_TOKEN` or
+the pair `AQDROP_CLIENT_ID` / `AQDROP_PRIVATE_KEY_PATH`, plus
 `AQDROP_HOSTNAME` into the container.
 
 ## Minimal Example for Submit and Retrieve Quantum Job on AQT QPU Named X6Y3
@@ -155,6 +196,11 @@ aqdrop job_list
 
 `aqdrop queue_list` lists available queues. `aqdrop job_list` lists your jobs
 and their status.
+
+The CLI uses the same auth resolution as the Python SDK:
+
+- `NERSC_OIDC_TOKEN` if you already have a bearer token
+- otherwise `AQDROP_CLIENT_ID` plus `AQDROP_PRIVATE_KEY_PATH`
 
 `examples/job_submit_bell.py` submits immediately. The larger
 `examples/job_submit.py` script prepares a multi-circuit example and only

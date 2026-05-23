@@ -13,24 +13,26 @@ from . import defs, creds
 
 class AqdropClient:
     def __init__(self,
-                 username: str | None = None,
-                 password: str | None = None,
-                 host: str | None = None):
+                 host: str | None = None,
+                 token: str | None = None,
+                 client_id: str | None = None,
+                 private_key_path: str | None = None,
+                 token_url: str | None = None):
         self._token = None
-
-        if username is None:
-            username = creds.get_username()
-
-        if password is None:
-            password = creds.get_password()
 
         if host is None:
             host = creds.get_network()
 
+        token = creds.resolve_token(
+            token=token,
+            client_id=client_id,
+            private_key_path=private_key_path,
+            token_url=token_url,
+        )
+
         ctx = ssl.create_default_context(cafile=certifi.where())
         self._client = httpx.Client(base_url=host.rstrip("/"), timeout=10, verify=ctx)
-
-        self._login(username, password)
+        self._token = token
 
 
     def _apply_token(self, headers: dict):
@@ -45,18 +47,6 @@ class AqdropClient:
         req = self._client.request(method, path, headers=new_headers, **kwargs)
         req.raise_for_status()
         return req
-
-
-    # TODO: set operator here (see if server returns is_admin - if not, modify it!)
-    def _login(self, username, password):
-        req_json = {"username": username, "password": password}
-        login_request = self._request("POST", "/token/",
-                                      data=req_json,
-                                      headers={"Content-Type": "application/x-www-form-urlencoded"})
-        login_response = login_request.json()
-        self._token = login_response["access_token"]
-
-        return self._token
 
 
     def create_member(self, username: str, email: str | None = None):
@@ -87,13 +77,11 @@ class AqdropClient:
     def update_member(self, name: str,
                       new_name: str | None = None,
                       new_email: str | None = None,
-                      new_password: str | None = None,
                       is_active: bool | None = None
                       ):
         req_json = {}
         if new_name is not None: req_json["name"] = new_name
         if new_email is not None: req_json["email"] = new_email
-        if new_password is not None: req_json["password"] = new_password
         if is_active is not None: req_json["is_active"] = is_active
         patch_request = self._request("PATCH", f"/members/{name}", json=req_json)
         # TODO: decide: do we need to log in again?

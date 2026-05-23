@@ -33,7 +33,7 @@ def main(args):
         # print out properly formatted .creds file to stdout so we can route it into a file
         print("#!/usr/bin/bash")
         print(f"export AQDROP_USERNAME={args.name}")
-        print(f"export AQDROP_PASSWORD={output['password']}")
+        print("export NERSC_OIDC_TOKEN=<your-nersc-token>")
         print(f"export AQDROP_HOSTNAME={creds.get_network()}")
 
 

@@ -30,7 +30,7 @@ done
 
 eval podman run -it \
      -e AQDROP_USERNAME=$AQDROP_USERNAME\
-     -e AQDROP_PASSWORD=$AQDROP_PASSWORD \
+     -e NERSC_OIDC_TOKEN=$NERSC_OIDC_TOKEN \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
     --volume /shared_volumes/quantumMind:/quantumMind \
     --volume $DATA_VAULT:/dataVault2026 \
@@ -38,4 +38,3 @@ eval podman run -it \
     -e DISPLAY=host.containers.internal:0  \
     --workdir $WORK_DIR \
     $IMG /bin/bash
-
