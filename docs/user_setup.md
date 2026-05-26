@@ -43,13 +43,14 @@ Programmatic examples:
 ```python
 import aqdrop
 
-client = aqdrop.AqdropClient(token="<nersc-oidc-token>")
+client = aqdrop.AqdropClient(host="https://<aqdrop-api-host>", token="<nersc-oidc-token>")
 ```
 
 ```python
 import aqdrop
 
 client = aqdrop.AqdropClient(
+    host="https://<aqdrop-api-host>",
     client_id="<sfapi-client-id>",
     private_key_path="/path/to/private-key.pem",
 )

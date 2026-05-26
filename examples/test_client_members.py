@@ -16,9 +16,9 @@ if __package__ in (None, ""):
 import aqdrop
 
 
-DEFAULT_HOST = "https://aqdrop-api-dev.lbl-b59.org"
-DEFAULT_CLIENT_ID = "qn5djiwvs3dnm"
-DEFAULT_PRIVATE_KEY_PATH = "/var/home_ext/aqdrop/private_key.pem"
+DEFAULT_HOST = "https://<aqdrop-api-host>"
+DEFAULT_CLIENT_ID = "<sfapi-client-id>"
+DEFAULT_PRIVATE_KEY_PATH = "/path/to/private-key.pem"
 
 
 def parse_args() -> argparse.Namespace:

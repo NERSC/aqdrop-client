@@ -50,7 +50,7 @@ def fetch_sfapi_token(client_id: str, private_key_path: str, token_url: str | No
         from authlib.oauth2.rfc7523 import PrivateKeyJWT
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
-            "authlib is required for SFAPI token fetching. Install the aqdrop package with auth support."
+            "authlib is required for SFAPI token fetching. Install it with 'pip install authlib'."
         ) from exc
 
     private_key = read_private_key(private_key_path)
