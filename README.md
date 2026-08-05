@@ -9,6 +9,12 @@ User instructions are in [docs/](docs/). Start with
 
 ![AQDrop user setup diagram](docs/AQDrop-user.png)
 
+Privileged operators should start with
+[operator/README.md](operator/README.md). The operator runtime, container recipe,
+and `qubic3` setup guide live in this repository because they consume the client
+API and Qiskit job payloads; the API server repository contains only the service
+and deployment assets.
+
 ## Library and Client
 
 The `aqdrop` Python library provides a programmatic interface to the API, allowing users to interact with the quantum testbed via Python scripts.
@@ -85,3 +91,16 @@ dependencies.
 
 Admin and operator are independent roles. Accounts that require both sets of
 privileges must belong to both LDAP groups.
+
+### Operator Installation
+
+Install the optional runtime dependencies from a client checkout:
+
+```bash
+pip install ".[operator]"
+```
+
+This adds `aqdrop-operator`, `aqdrop-run-qiskit`, and `aqdrop-run-qpu`. Operator
+actions still authenticate with the same SFAPI bearer token as ordinary client
+requests and are authorized by live `aqdrop_operator` LDAP membership checks on
+the API server.
