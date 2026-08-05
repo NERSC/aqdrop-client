@@ -30,8 +30,8 @@ def get_token_url():
     return os.getenv("AQDROP_SFAPI_TOKEN_URL", DEFAULT_SFAPI_TOKEN_URL)
 
 
-def read_private_key(private_key_path: str):
-    with open(private_key_path, "r", encoding="utf-8") as key_file:
+def read_private_key(private_key_path: str) -> bytes:
+    with open(private_key_path, "rb") as key_file:
         return key_file.read()
 
 
