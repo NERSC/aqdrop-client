@@ -3,7 +3,7 @@
 set -euo pipefail
 
 : "${AQDROP_HOSTNAME:?Set AQDROP_HOSTNAME to the AQDrop API URL}"
-: "${NERSC_OIDC_TOKEN:?Set NERSC_OIDC_TOKEN to a current SFAPI token}"
+: "${SFAPI_TOKEN:?Set SFAPI_TOKEN to a current SFAPI token}"
 
 CLIENT_DIR=${AQDROP_CLIENT_DIR:-$HOME/myAQDrop/aqdrop-client}
 QUBIC_CALIB_BASE_PATH=${QUBIC_CALIB_BASE_PATH:-$HOME/dataVault2026/qpus_calib}
@@ -21,7 +21,7 @@ test -f "$QUBIC_CALIB_BASE_PATH/active_qpus.yaml" || {
 exec podman run --rm -it \
     --network host \
     -e AQDROP_HOSTNAME \
-    -e NERSC_OIDC_TOKEN \
+    -e SFAPI_TOKEN \
     -e QUBIC_CALIB_BASE_PATH=/opt/qpus_calib \
     -e HOME \
     -e DISPLAY \

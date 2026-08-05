@@ -34,7 +34,7 @@ Store credentials in a private shell file outside the repository:
 
 ```bash
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
-export NERSC_OIDC_TOKEN=<current-sfapi-token>
+export SFAPI_TOKEN=<current-sfapi-token>
 export QUBIC_CALIB_BASE_PATH=$HOME/dataVault2026/qpus_calib
 ```
 
@@ -77,5 +77,5 @@ aqdrop-run-qpu --id <job-id> --execJob
 ```
 
 Exit the shell when the operator session is complete. Refresh
-`NERSC_OIDC_TOKEN` before it expires and restart the container with the new
+`SFAPI_TOKEN` before it expires and restart the container with the new
 token.

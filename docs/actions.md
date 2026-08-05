@@ -9,20 +9,35 @@ The CLI uses the same auth configuration as `aqdrop.AqdropClient`.
 Set `AQDROP_HOSTNAME` plus one of these auth options before running CLI
 commands:
 
-Direct token:
+Existing SFAPI bearer token:
 
 ```bash
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
-export NERSC_OIDC_TOKEN=<your-token>
+export SFAPI_TOKEN=<your-sfapi-token>
 ```
 
-SFAPI client credentials:
+This token is issued by NERSC outside AQDrop. AQDrop does not issue bearer
+tokens, and the former AQDrop username/password `/token/` flow is not
+supported.
+
+Automatic SFAPI token fetch with client credentials:
 
 ```bash
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
-export AQDROP_CLIENT_ID=<your-sfapi-client-id>
-export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
+export SFAPI_CLIENT_ID=<your-sfapi-client-id>
+export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 ```
+
+To populate `SFAPI_TOKEN` from credentials stored in files:
+
+```bash
+export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
+  --client-id-file "$HOME/.ssh/aqdrop-sfapi-client-id" \
+  --private-key-file "$HOME/.ssh/aqdrop-sfapi-private-key.pem")"
+```
+
+The helper prints only the token. The client ID file must contain one value;
+the private key file must contain the matching PEM key.
 
 The server derives the username from the validated token and checks NERSC LDAP.
 No separate AQDrop username is configured. The CLI action list reports the

@@ -19,8 +19,8 @@ and deployment assets.
 
 The `aqdrop` Python library provides a programmatic interface to the API, allowing users to interact with the quantum testbed via Python scripts.
 
-The SDK supports either a directly supplied bearer token or SFAPI token fetch
-from a client ID plus a private-key file path.
+The SDK supports either an existing NERSC SFAPI bearer token or automatic
+SFAPI token fetch from a client ID plus a private-key file path.
 
 The API validates the SFAPI token, derives the NERSC username from its `un:`
 scope, and authorizes the identity using NERSC LDAP. The client does not send or
@@ -31,18 +31,21 @@ the `aqdrop_users`, `aqdrop_operator`, and `aqdrop_admin` LDAP groups.
 
 The main client entry point is `aqdrop.AqdropClient`.
 
-Direct bearer token:
+Existing SFAPI bearer token:
 
 ```python
 import aqdrop
 
 client = aqdrop.AqdropClient(
     host="https://<aqdrop-api-host>",
-    token="<nersc-oidc-token>",
+    token="<sfapi-token>",
 )
 ```
 
-SFAPI client credentials:
+The existing token is issued by NERSC outside AQDrop. The retired AQDrop
+username/password `/token/` flow is not supported.
+
+Automatic SFAPI token fetch with client credentials:
 
 ```python
 import aqdrop
@@ -60,13 +63,24 @@ variables instead:
 ```bash
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 
-# Option 1: direct token
-export NERSC_OIDC_TOKEN=<your-token>
+# Option 1: existing SFAPI bearer token
+export SFAPI_TOKEN=<your-sfapi-token>
 
-# Option 2: SFAPI client credentials
-export AQDROP_CLIENT_ID=<your-sfapi-client-id>
-export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
+# Option 2: automatic SFAPI token fetch
+export SFAPI_CLIENT_ID=<your-sfapi-client-id>
+export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 ```
+
+To generate `SFAPI_TOKEN` explicitly from credentials stored in files:
+
+```bash
+export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
+  --client-id-file "$HOME/.ssh/aqdrop-sfapi-client-id" \
+  --private-key-file "$HOME/.ssh/aqdrop-sfapi-private-key.pem")"
+```
+
+The helper prints only the token to standard output. It does not write the
+token or private key to disk.
 
 ### Installation
 

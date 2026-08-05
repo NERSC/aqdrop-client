@@ -31,7 +31,7 @@ Set these variables before starting a runner:
 
 ```bash
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
-export NERSC_OIDC_TOKEN=<current-sfapi-token>
+export SFAPI_TOKEN=<current-sfapi-token>
 export QUBIC_CALIB_BASE_PATH=/path/to/qpus_calib
 ```
 

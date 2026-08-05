@@ -20,20 +20,34 @@ The server validates the token and derives your NERSC username from its unique
 administrator access are granted through the independent `aqdrop_operator` and
 `aqdrop_admin` LDAP groups.
 
-Direct token:
+Existing SFAPI bearer token:
 
 ```bash
-export NERSC_OIDC_TOKEN=<your-nersc-token>
+export SFAPI_TOKEN=<your-sfapi-token>
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
 
-SFAPI token fetch from client credentials:
+This token is issued by NERSC outside AQDrop. AQDrop does not issue bearer
+tokens, and the former AQDrop username/password `/token/` flow is not
+supported.
+
+Automatic SFAPI token fetch with client credentials:
 
 ```bash
-export AQDROP_CLIENT_ID=<your-sfapi-client-id>
-export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
+export SFAPI_CLIENT_ID=<your-sfapi-client-id>
+export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
+
+You can also generate the environment token explicitly from files:
+
+```bash
+export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
+  --client-id-file "$HOME/.ssh/aqdrop-sfapi-client-id" \
+  --private-key-file "$HOME/.ssh/aqdrop-sfapi-private-key.pem")"
+```
+
+The helper prints only the token to standard output and does not persist it.
 
 The SDK also accepts `token=...` directly, or `client_id=...` together with
 `private_key_path=...` when you construct `aqdrop.AqdropClient(...)`.
@@ -43,7 +57,7 @@ Programmatic examples:
 ```python
 import aqdrop
 
-client = aqdrop.AqdropClient(host="https://<aqdrop-api-host>", token="<nersc-oidc-token>")
+client = aqdrop.AqdropClient(host="https://<aqdrop-api-host>", token="<sfapi-token>")
 ```
 
 ```python
@@ -67,8 +81,8 @@ the repository, not in source control and not embedded in a container image.
 Prefer storing credentials in your personal `.ssh` directory and sourcing them
 at the start of each session.
 
-For example, create `~/.ssh/aqdrop.creds` with either the direct token form or
-the SFAPI client-credentials form shown above.
+For example, create `~/.ssh/aqdrop.creds` with either the existing-token form
+or the SFAPI client-credentials form shown above.
 Restrict access to the file:
 
 ```bash
@@ -88,7 +102,7 @@ environment variables to the image at execution time.
 
 If you use the SFAPI client-credential flow inside a container, mount the
 private-key file into the container and pass its mounted path through
-`AQDROP_PRIVATE_KEY_PATH`.
+`SFAPI_PRIVATE_KEY_PATH`.
 
 ## Laptop Setup
 
@@ -138,8 +152,8 @@ repository includes `pm_balewski.src` as a user-specific launcher:
 ```
 
 Adapt that image starting script for your account, paths, image tag, and credential source.
-The launcher should pass either `NERSC_OIDC_TOKEN` or the pair
-`AQDROP_CLIENT_ID` / `AQDROP_PRIVATE_KEY_PATH`, plus `AQDROP_HOSTNAME` into the
+The launcher should pass either `SFAPI_TOKEN` or the pair
+`SFAPI_CLIENT_ID` / `SFAPI_PRIVATE_KEY_PATH`, plus `AQDROP_HOSTNAME` into the
 container.
 
 ## Minimal Example for Submit and Retrieve Quantum Job on AQT QPU Named X6Y3
@@ -200,8 +214,8 @@ and their status.
 
 The CLI uses the same auth resolution as the Python SDK:
 
-- `NERSC_OIDC_TOKEN` if you already have a bearer token
-- otherwise `AQDROP_CLIENT_ID` plus `AQDROP_PRIVATE_KEY_PATH`
+- `SFAPI_TOKEN` if you already have a bearer token
+- otherwise `SFAPI_CLIENT_ID` plus `SFAPI_PRIVATE_KEY_PATH`
 
 Authentication and authorization failures are reported separately: `401`
 means the SFAPI credential was rejected, `403` means the validated identity

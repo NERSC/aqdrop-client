@@ -29,7 +29,7 @@ done
 
 
 eval podman run -it \
-     -e NERSC_OIDC_TOKEN=$NERSC_OIDC_TOKEN \
+     -e SFAPI_TOKEN=$SFAPI_TOKEN \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
     --volume /shared_volumes/quantumMind:/quantumMind \
     --volume $DATA_VAULT:/dataVault2026 \

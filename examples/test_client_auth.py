@@ -28,18 +28,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--token",
-        default=os.getenv("NERSC_OIDC_TOKEN"),
+        default=os.getenv("SFAPI_TOKEN"),
         help="Use an already issued bearer token instead of fetching one.",
     )
     parser.add_argument(
         "--client-id",
-        default=os.getenv("AQDROP_CLIENT_ID"),
-        help="SFAPI client ID. Defaults to AQDROP_CLIENT_ID.",
+        default=os.getenv("SFAPI_CLIENT_ID"),
+        help="SFAPI client ID. Defaults to SFAPI_CLIENT_ID.",
     )
     parser.add_argument(
         "--private-key-path",
-        default=os.getenv("AQDROP_PRIVATE_KEY_PATH"),
-        help="Path to the SFAPI private key PEM file. Defaults to AQDROP_PRIVATE_KEY_PATH.",
+        default=os.getenv("SFAPI_PRIVATE_KEY_PATH"),
+        help="Path to the SFAPI private key PEM file. Defaults to SFAPI_PRIVATE_KEY_PATH.",
     )
     parser.add_argument(
         "--token-url",
@@ -74,7 +74,7 @@ def build_client(args: argparse.Namespace) -> aqdrop.AqdropClient:
     if not args.client_id or not args.private_key_path:
         raise SystemExit(
             "Set --token, or provide both --client-id and --private-key-path, "
-            "or set AQDROP_CLIENT_ID and AQDROP_PRIVATE_KEY_PATH."
+            "or set SFAPI_CLIENT_ID and SFAPI_PRIVATE_KEY_PATH."
         )
 
     print("Fetching bearer token with SFAPI client credentials.")

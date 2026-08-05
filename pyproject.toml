@@ -28,6 +28,7 @@ dependencies = [
 
 [project.scripts]
 aqdrop = "aqdrop.cli:main"
+aqdrop-generate-sfapi-token = "aqdrop.generate_sfapi_token:main"
 aqdrop-operator = "aqdrop_operator.operator_daemon:cli"
 aqdrop-run-qiskit = "aqdrop_operator.job_run_qiskit:cli"
 aqdrop-run-qpu = "aqdrop_operator.job_run_qpu:cli"
