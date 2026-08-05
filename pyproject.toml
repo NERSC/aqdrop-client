@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 license = "BSD-3-Clause"
-license-files = ["LICENSE*"]
+license-files = ["license.txt"]
 
 dependencies = [
     "authlib>=1.6.0",

@@ -5,6 +5,8 @@ import argparse
 
 
 def print_available_actions():
+    """Prints a list of all available aqdrop actions and their required permissions.
+    """
     print("The following actions are available. For more detailed usage information, type \"aqdrop <action> --help\".")
     import aqdrop.actions
     import pkgutil
@@ -21,6 +23,10 @@ def print_available_actions():
 
 
 def main():
+    """Main entry point for the aqdrop CLI.
+
+    Parses action and arguments, then executes the corresponding action module.
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("action", nargs="?", default=None, help="The action to be performed.")
     pre_args, remaining = parser.parse_known_args()

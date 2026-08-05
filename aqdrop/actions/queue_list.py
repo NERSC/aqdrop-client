@@ -20,7 +20,6 @@ def add_args(parser: argparse.ArgumentParser):
 
 
 def main(args):
-
     state = defs.QueueState(args.state) if args.state is not None else None
 
     client = cli_utils.connect_verbose()

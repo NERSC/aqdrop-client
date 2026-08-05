@@ -6,6 +6,11 @@ PT_TIMEZONE = ZoneInfo("America/Los_Angeles")
 DB_TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
 def connect_verbose():
+    """Connects to the AQDROP service and prints connection status.
+
+    Returns:
+        AqdropClient: An authenticated AqdropClient instance.
+    """
     try:
         print("Connecting...")
         from .main import AqdropClient
@@ -23,6 +28,14 @@ def connect_verbose():
     return c
 
 def format_db_time_pt(db_time):
+    """Formats a database timestamp to Pacific Time (PT) string.
+
+    Args:
+        db_time: The timestamp to format. Can be a datetime object or a string.
+
+    Returns:
+        str: The formatted timestamp string in DB_TIME_FORMAT.
+    """
     if db_time is None:
         return ""
 
@@ -46,6 +59,15 @@ def format_db_time_pt(db_time):
     return action_time.strftime(DB_TIME_FORMAT)
 
 def trim(s: str, w: int = 80):
+    """Trims a string by inserting newlines every w characters.
+
+    Args:
+        s: The string to trim.
+        w: The width at which to insert newlines. Defaults to 80.
+
+    Returns:
+        str: The trimmed string.
+    """
     r = ""
     i = 0
     for ch in s:
@@ -58,6 +80,16 @@ def trim(s: str, w: int = 80):
     return r
 
 def _format_table_row(values, widths, alignments):
+    """Formats a single row of a table with specified widths and alignments.
+
+    Args:
+        values: The values to be formatted in the row.
+        widths: The target width for each column.
+        alignments: The alignment ('right' or 'left') for each column.
+
+    Returns:
+        str: The formatted row as a string.
+    """
     fields = []
     for value, width, alignment in zip(values, widths, alignments):
         if alignment == "right":
@@ -67,6 +99,11 @@ def _format_table_row(values, widths, alignments):
     return "   ".join(fields).rstrip()
 
 def print_job_table(jobs):
+    """Prints a formatted table of jobs to the console.
+
+    Args:
+        jobs: A list of job dictionaries to print.
+    """
     headers = list(jobs[0].keys())
     alignments = ["right" if header == "id" else "left" for header in headers]
     rows = []

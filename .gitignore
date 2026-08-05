@@ -8,3 +8,4 @@ aqdrop.egg-info/
 old/
 *~
 .ipynb_checkpoints/
+*.creds

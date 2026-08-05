@@ -4,6 +4,7 @@ import os
 
 DEFAULT_SFAPI_TOKEN_URL = "https://oidc.nersc.gov/c2id/token"
 
+
 def get_token():
     token = os.getenv("NERSC_OIDC_TOKEN")
     if token is None:
@@ -91,6 +92,11 @@ def resolve_token(
 
 
 def get_network():
+    """Returns the value of the AQDROP_HOSTNAME environment variable.
+
+    Raises:
+        NameError: If AQDROP_HOSTNAME is not set.
+    """
     network = os.getenv("AQDROP_HOSTNAME")
     if network is None:
         raise NameError("Environment variable AQDROP_HOSTNAME must be set!")
