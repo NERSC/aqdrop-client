@@ -10,16 +10,14 @@ def print_available_actions():
     import pkgutil
     import importlib
 
-    header = f" {'Action':<20} {'Admin':<10} {'Operator':<10} {'User':<10} {'Description':<40}"
+    header = f" {'Action':<20} {'LDAP access':<34} {'Description':<40}"
     print(header)
     print("-" * len(header))
 
     for info in pkgutil.iter_modules(path=aqdrop.actions.__path__):
         module = importlib.import_module(f"aqdrop.actions.{info.name}")
         action_info = getattr(module, "action_info")()
-        op_yes = "Yes" if action_info['operator'] else "No"
-        user_yes = "Yes" if action_info['user'] else "No"
-        print(f" {info.name:<20} {'Yes':<10} {op_yes:<10} {user_yes:<10} {action_info['description']:<40}")
+        print(f" {info.name:<20} {action_info['access']:<34} {action_info['description']:<40}")
 
 
 def main():

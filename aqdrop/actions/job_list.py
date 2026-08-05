@@ -13,14 +13,14 @@ from aqdrop import defs
 
 
 def action_info():
-    return {"operator": True, "user": True, "description": "List and filter jobs"}
+    return {"access": "user (own); admin/operator (all)", "description": "List and filter jobs"}
 
 
 def add_args(parser: argparse.ArgumentParser):
     parser.add_argument("-I", "--id-min", type=int, help="Minimum job ID.")
     parser.add_argument("-A", "--id-max", type=int, help="Maximum job ID.")
     parser.add_argument("-q", "--queue", help="The name of the queue to list jobs for.")
-    parser.add_argument("-u", "--user", help="The username to list jobs for.")
+    parser.add_argument("-o", "--owner", help="The owner username to list jobs for.")
     parser.add_argument(
         "-s",
         "--status",
@@ -41,7 +41,7 @@ def main(args):
         id_min=args.id_min,
         id_max=args.id_max,
         queue_name=args.queue,
-        owner_name=args.user,
+        owner_name=args.owner,
         status=status,
         max_jobs=args.max_jobs,
         created_min=args.created_min,

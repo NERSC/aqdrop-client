@@ -1,6 +1,6 @@
 # AQDrop
 
-AQDrop is the management system for interaction with the Advanced Quantum Testbed (AQT) at NERSC. It provides a centralized API for job submission, queue management, and member access control.
+AQDrop is the management system for interaction with the Advanced Quantum Testbed (AQT) at NERSC. It provides a centralized API for authenticated job submission and role-based queue operation.
 
 ## User Documentation
 
@@ -15,6 +15,11 @@ The `aqdrop` Python library provides a programmatic interface to the API, allowi
 
 The SDK supports either a directly supplied bearer token or SFAPI token fetch
 from a client ID plus a private-key file path.
+
+The API validates the SFAPI token, derives the NERSC username from its `un:`
+scope, and authorizes the identity using NERSC LDAP. The client does not send or
+configure a separate AQDrop username. Access is managed outside AQDrop through
+the `aqdrop_users`, `aqdrop_operator`, and `aqdrop_admin` LDAP groups.
 
 ### Client Authentication
 
@@ -71,3 +76,12 @@ pip install aqdrop[qiskit]
 
 The SFAPI token flow uses `authlib`, which is included in the package
 dependencies.
+
+### Authorization Roles
+
+- `aqdrop_users` permits ordinary queue access and operations on the caller's jobs.
+- `aqdrop_operator` permits job dispatch/reset and cross-user job inspection.
+- `aqdrop_admin` permits queue administration, database reset, cross-user cancellation, and cross-user job inspection.
+
+Admin and operator are independent roles. Accounts that require both sets of
+privileges must belong to both LDAP groups.

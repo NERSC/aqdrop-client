@@ -28,7 +28,6 @@ for var in "$@"; do
 done
 
 eval podman-hpc run -it \
-     -e AQDROP_USERNAME=$AQDROP_USERNAME\
      -e NERSC_OIDC_TOKEN=$NERSC_OIDC_TOKEN \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
    --volume  $CFSH/myAQDrop/$BASE_DIR:$BASE_DIR \

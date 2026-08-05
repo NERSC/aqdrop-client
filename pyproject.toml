@@ -30,6 +30,9 @@ dependencies = [
 aqdrop = "aqdrop.cli:main"
 
 [project.optional-dependencies]
+test = [
+    "pytest>=8"
+]
 qiskit = [
     "qiskit[core]>=2.3.1,<3"
 ]

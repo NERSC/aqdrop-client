@@ -4,29 +4,24 @@ import argparse
 import tabulate
 
 from aqdrop import cli_utils, defs
-from aqdrop import creds
 
 
 def action_info():
-    return {"operator": True, "user": True, "description": "List available queues"}
+    return {"access": "user/admin", "description": "List available queues"}
 
 
 def add_args(parser: argparse.ArgumentParser):
-    parser.add_argument("-s", "--state", default=None, help="The state of the queues to list (e.g., open, down).")
+    parser.add_argument(
+        "-s",
+        "--state",
+        choices=[state.value for state in defs.QueueState],
+        help="Only list queues in this state.",
+    )
 
 
 def main(args):
 
-    if args.state == "open":
-        state = defs.QueueState.OPEN
-    elif args.state == "down":
-        state = defs.QueueState.DOWN
-    elif args.state == "retired":
-        state = defs.QueueState.RETIRED
-    elif args.state is not None:
-        print(f"Unrecognized queue state \"{args.state}.\"\nOptions are {', '.join(s.value for s in defs.QueueState)}.")
-        exit()
-    else: state = None
+    state = defs.QueueState(args.state) if args.state is not None else None
 
     client = cli_utils.connect_verbose()
     queues = client.list_queues(state)

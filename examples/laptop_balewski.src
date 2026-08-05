@@ -29,7 +29,6 @@ done
 
 
 eval podman run -it \
-     -e AQDROP_USERNAME=$AQDROP_USERNAME\
      -e NERSC_OIDC_TOKEN=$NERSC_OIDC_TOKEN \
      -e AQDROP_HOSTNAME=$AQDROP_HOSTNAME \
     --volume /shared_volumes/quantumMind:/quantumMind \

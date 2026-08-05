@@ -5,7 +5,6 @@ import ssl
 import base64
 import io
 import tempfile
-import os
 import typing
 
 from . import defs, creds
@@ -47,63 +46,6 @@ class AqdropClient:
         req = self._client.request(method, path, headers=new_headers, **kwargs)
         req.raise_for_status()
         return req
-
-
-    def create_member(self, username: str, email: str | None = None):
-        req_json = { "name": username }
-
-        if email is not None:
-            req_json["email"] = email
-
-        create_request = self._request("POST", "/members/", json=req_json)
-        return create_request.json()
-
-
-    # TODO: fix request params
-    def get_member_list(self, skip: int | None = None, limit: int | None = None):
-        req_params = {}
-        if skip is not None: req_params["skip"] = skip
-        if limit is not None: req_params["limit"] = limit
-        get_request = self._request("GET", "/members/", params=req_params)
-        return get_request.json()
-
-
-    def get_member(self, name: str):
-        get_request = self._request("GET", f"/members/{name}")
-        return get_request.json()
-
-
-    # TODO: use pydantic for cleaner queries
-    def update_member(self, name: str,
-                      new_name: str | None = None,
-                      new_email: str | None = None,
-                      is_active: bool | None = None
-                      ):
-        req_json = {}
-        if new_name is not None: req_json["name"] = new_name
-        if new_email is not None: req_json["email"] = new_email
-        if is_active is not None: req_json["is_active"] = is_active
-        patch_request = self._request("PATCH", f"/members/{name}", json=req_json)
-        # TODO: decide: do we need to log in again?
-        return patch_request.json()
-
-
-    def delete_member(self, name: str):
-        delete_request = self._request("DELETE", f"/members/{name}")
-        return delete_request.json()
-
-
-    def update_member_perms(self, name: str,
-                            is_admin: bool | None = None,
-                            is_operator: bool | None = None,
-                            is_suspended: bool | None = None
-                            ):
-        req_json = {}
-        if is_admin is not None: req_json["is_admin"] = is_admin
-        if is_operator is not None: req_json["is_operator"] = is_operator
-        if is_suspended is not None: req_json["is_suspended"] = is_suspended
-        patch_request = self._request("PATCH", f"/members/{name}/role/", json=req_json)
-        return patch_request.json()
 
 
     def _validate_job(self, queue_name: str, job_input: dict):
@@ -238,7 +180,6 @@ class AqdropClient:
     def add_queue(self, queue_name: str,  limit: int, queue_type: defs.QueueType, max_qubits: int, description: str = ""):
         req_json = {
                 "name": queue_name,
-                "default_access": True,
                 "limit_per_member": limit,
                 "description": description,
                 "type": queue_type,
@@ -262,10 +203,14 @@ class AqdropClient:
     # TODO: use pydantic for cleaner queries
     def update_queue(self, queue_name: str,
                      new_limit: int | None = None,
-                     new_state: defs.QueueState | None = None):
+                     new_state: defs.QueueState | None = None,
+                     new_max_qubits: int | None = None,
+                     new_type: defs.QueueType | None = None):
         req_json = {}
         if new_limit is not None: req_json["limit_per_member"] = new_limit
         if new_state is not None: req_json["state"] = new_state.value
+        if new_max_qubits is not None: req_json["max_qubits"] = new_max_qubits
+        if new_type is not None: req_json["type"] = new_type.value
         r = self._request("PATCH", f"/queue/{queue_name}", json=req_json)
         return r.json()
 
@@ -276,7 +221,6 @@ class AqdropClient:
                    id_max: int | None = None,
                    queue_name: str | None = None,
                    owner_name: str | None = None,
-                   owner_id: int | None = None,
                    status: defs.JobStatus | None = None,
                    max_jobs: int | None = None,
                        created_min: str | None = None,
@@ -287,16 +231,10 @@ class AqdropClient:
         if id_max is not None: req_params["id_max"] = id_max
         if queue_name is not None: req_params["queue_name"] = queue_name
         if owner_name is not None: req_params["owner_name"] = owner_name
-        if owner_id is not None: req_params["owner_id"] = owner_id
         if status is not None: req_params["status"] = status.value
         if max_jobs is not None: req_params["max_jobs"] = max_jobs
         if created_min is not None: req_params["created_min"] = created_min
         if created_max is not None: req_params["created_max"] = created_max
         if reverse: req_params["reverse"] = "true"
         r = self._request("GET", "/jobs/", params=req_params)
-        return r.json()
-
-
-    def list_members(self):
-        r = self._request("GET", "/members/")
         return r.json()

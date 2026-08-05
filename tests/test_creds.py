@@ -44,3 +44,7 @@ def test_resolve_token_requires_complete_sfapi_config(monkeypatch):
 
     with pytest.raises(NameError, match="Both AQDROP_CLIENT_ID and AQDROP_PRIVATE_KEY_PATH"):
         creds.resolve_token()
+
+
+def test_username_is_not_client_configuration():
+    assert not hasattr(creds, "get_username")

@@ -10,18 +10,19 @@ operator. AQDrop is a human-operated API on both ends of the service.
 
 Ask the AQDrop service administrator for:
 
-- your AQDrop username
+- membership in the NERSC LDAP `aqdrop_users` group
 - either a valid NERSC OIDC bearer token
 - or an SFAPI client ID plus the matching private key file
 - the AQDrop API hostname
 
-You will receive these values from the AQDrop administrator. The AQDrop Python
-client can authenticate in either of these ways.
+The server validates the token and derives your NERSC username from its unique
+`un:` scope. Do not configure or send a separate AQDrop username. Operator and
+administrator access are granted through the independent `aqdrop_operator` and
+`aqdrop_admin` LDAP groups.
 
 Direct token:
 
 ```bash
-export AQDROP_USERNAME=<your-user-name>
 export NERSC_OIDC_TOKEN=<your-nersc-token>
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
@@ -29,7 +30,6 @@ export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 SFAPI token fetch from client credentials:
 
 ```bash
-export AQDROP_USERNAME=<your-user-name>
 export AQDROP_CLIENT_ID=<your-sfapi-client-id>
 export AQDROP_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
@@ -138,9 +138,9 @@ repository includes `pm_balewski.src` as a user-specific launcher:
 ```
 
 Adapt that image starting script for your account, paths, image tag, and credential source.
-The launcher should pass `AQDROP_USERNAME` and either `NERSC_OIDC_TOKEN` or
-the pair `AQDROP_CLIENT_ID` / `AQDROP_PRIVATE_KEY_PATH`, plus
-`AQDROP_HOSTNAME` into the container.
+The launcher should pass either `NERSC_OIDC_TOKEN` or the pair
+`AQDROP_CLIENT_ID` / `AQDROP_PRIVATE_KEY_PATH`, plus `AQDROP_HOSTNAME` into the
+container.
 
 ## Minimal Example for Submit and Retrieve Quantum Job on AQT QPU Named X6Y3
 
@@ -202,6 +202,11 @@ The CLI uses the same auth resolution as the Python SDK:
 
 - `NERSC_OIDC_TOKEN` if you already have a bearer token
 - otherwise `AQDROP_CLIENT_ID` plus `AQDROP_PRIVATE_KEY_PATH`
+
+Authentication and authorization failures are reported separately: `401`
+means the SFAPI credential was rejected, `403` means the validated identity
+lacks the required LDAP group, and `503` means live LDAP authorization was
+unavailable.
 
 `examples/job_submit_bell.py` submits immediately. The larger
 `examples/job_submit.py` script prepares a multi-circuit example and only
