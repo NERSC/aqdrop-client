@@ -15,15 +15,26 @@ The API verifies the username encoded in the SFAPI token and performs a live
 LDAP query for every dispatch or reset. There is no separate AQDrop username,
 password, or locally managed operator account.
 
+Before the first session, follow [SFAPI Authentication
+Setup](../../docs/sfapi_authentication.md) to create a Green client in Iris and
+save its client ID and private key. Green is sufficient for AQDrop operator
+requests. Generate a fresh `SFAPI_TOKEN` with the documented helper before
+starting the container.
+
+NERSC uses `podman-hpc` as its container runtime. The commands below use it by
+default. When building or running the image on another system, substitute the
+available container build/runtime tool, such as `podman` or Docker.
+
 ## Checkout and Build
 
 ```bash
 ssh qubic3
-git clone git@github.com:NERSC/aqdrop-client.git
+git clone https://github.com/NERSC/aqdrop-client.git
 cd aqdrop-client
-podman build \
+podman-hpc build \
   -f operator/containers/aqdrop-operator.dockerfile \
   -t aqdrop-operator:latest .
+podman-hpc migrate aqdrop-operator:latest
 ```
 
 For an existing checkout, pull the intended branch before rebuilding.
@@ -48,13 +59,13 @@ From the repository root, source the credential file and launcher:
 
 ```bash
 source ~/.ssh/aqdrop-operator.creds
-export AQDROP_CLIENT_DIR=$PWD
 operator/launch-qubic3.sh
 ```
 
-The launcher mounts the checkout at `/workspace/aqdrop-client`, mounts the
-calibration data read-only at `/opt/qpus_calib`, and passes only the API host,
-SFAPI token, and calibration path required by the runtime.
+The launcher defaults to `podman-hpc`, mounts calibration data read-only at
+`/opt/qpus_calib`, and passes only the API host, SFAPI token, and calibration
+path required by the runtime. The client and operator packages are installed in
+the image, so the source checkout is not mounted into the running container.
 
 Inside the container, verify API access without dispatching a job:
 

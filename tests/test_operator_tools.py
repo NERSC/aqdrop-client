@@ -1,11 +1,15 @@
 import argparse
 import base64
 import sys
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from aqdrop_operator import operator_daemon, qpy_utils
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_operator_daemon_uses_owner_name_filter():
@@ -51,3 +55,21 @@ def test_qpy_codec_uses_base64_payload(monkeypatch):
 def test_qpy_codec_rejects_invalid_base64():
     with pytest.raises(ValueError, match="valid base64 QPY"):
         qpy_utils.decode_circuits("not base64!")
+
+
+def test_operator_image_installs_client_and_operator_package():
+    dockerfile = (ROOT / "operator/containers/aqdrop-operator.dockerfile").read_text()
+
+    assert 'python -m pip install --no-cache-dir ".[operator]"' in dockerfile
+    assert "aqdrop --help" in dockerfile
+    assert "COPY aqdrop ./aqdrop" in dockerfile
+    assert "COPY aqdrop_operator ./aqdrop_operator" in dockerfile
+
+
+def test_operator_launcher_defaults_to_podman_hpc_without_source_mount():
+    launcher = (ROOT / "operator/launch-qubic3.sh").read_text()
+
+    assert "AQDROP_CONTAINER_RUNTIME=${AQDROP_CONTAINER_RUNTIME:-podman-hpc}" in launcher
+    assert 'exec "$AQDROP_CONTAINER_RUNTIME" run' in launcher
+    assert "AQDROP_CLIENT_DIR" not in launcher
+    assert "/workspace/aqdrop-client" not in launcher

@@ -2,9 +2,29 @@
 
 The `aqdrop` command line interface provides tools for managing jobs and queues within the AQDrop system.
 
+## Installation
+
+AQDrop requires Python 3.12 or newer. Install the client from the NERSC GitHub
+repository before using these commands:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install "aqdrop @ git+https://github.com/NERSC/aqdrop-client.git@main"
+aqdrop --help
+```
+
+For a local checkout or Qiskit/operator extras, follow
+[End-User Setup](user_setup.md#install-the-client).
+
 ## Authentication
 
 The CLI uses the same auth configuration as `aqdrop.AqdropClient`.
+
+Create a **Green** SFAPI client in NERSC Iris before configuring the CLI; Green
+is sufficient for AQDrop. Follow [SFAPI Authentication
+Setup](sfapi_authentication.md) for client registration, source-IP selection,
+secure key storage, and the complete token-helper workflow.
 
 Set `AQDROP_HOSTNAME` plus one of these auth options before running CLI
 commands:
@@ -37,7 +57,8 @@ export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
 ```
 
 The helper prints only the token. The client ID file must contain one value;
-the private key file must contain the matching PEM key.
+the private key file must contain the matching PEM key. SFAPI access tokens are
+short-lived, so rerun the helper when the token expires.
 
 The server derives the username from the validated token and checks NERSC LDAP.
 No separate AQDrop username is configured. The CLI action list reports the

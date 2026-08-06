@@ -1,8 +1,10 @@
 FROM ubuntu:24.04
 
-# Build from the aqdrop-client repository root:
-# podman build -f operator/containers/aqdrop-operator.dockerfile \
+# Build from the aqdrop-client repository root. At NERSC use podman-hpc:
+# podman-hpc build -f operator/containers/aqdrop-operator.dockerfile \
 #   -t aqdrop-operator:latest .
+# podman-hpc migrate aqdrop-operator:latest
+# Outside NERSC, substitute the available container build tool.
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles \
@@ -63,11 +65,12 @@ RUN python3 -m venv "${VIRTUAL_ENV}" && \
         scikit-learn \
         scipy
 
-# Install the client and operator runtime from this checkout.
+# Install the client CLI and operator runtime from this checkout.
 WORKDIR /opt/aqdrop-client
 COPY pyproject.toml README.md license.txt ./
 COPY aqdrop ./aqdrop
 COPY aqdrop_operator ./aqdrop_operator
-RUN pip install ".[operator]"
+RUN python -m pip install --no-cache-dir ".[operator]" && \
+    aqdrop --help >/dev/null
 
 CMD ["/bin/bash"]

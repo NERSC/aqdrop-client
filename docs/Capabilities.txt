@@ -3,13 +3,11 @@ How the software was built
 
 The overall solution spans three complementary layers.
 
-The thin Python SDK is packaged with setuptools for pip installation (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains SFAPI bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for queues and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
+The thin Python SDK is packaged with setuptools for installation from the NERSC GitHub repository (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains SFAPI bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for queues and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
 
 The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. NERSC SFAPI bearer-token authentication identifies callers, while NERSC LDAP groups grant ordinary, operator, and administrator access. Job ownership and audit attribution use NERSC usernames directly; AQDrop does not maintain local user accounts. Job and queue endpoints persist state through CRUD layers against PostgreSQL.
 
-The browser tier is a Flask application served with Gunicorn. Sessions hold API tokens; pages render dashboards for queues and jobs and offer flows to inspect queues and submit or view jobs. Those views call the same Python SDK against the configured API URL.
-
-Operator-side tooling runs outside that HTTP tier on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API.
+Operator-side tooling runs on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API. The operator container installs the same client package and its operator extra. At NERSC, container workflows use `podman-hpc`; other sites can use their available OCI-compatible build and runtime tools.
 
 
 Capabilities
