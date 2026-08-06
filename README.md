@@ -2,6 +2,52 @@
 
 AQDrop is the management system for interaction with the Advanced Quantum Testbed (AQT) at NERSC. It provides a centralized API for authenticated job submission and role-based queue operation.
 
+## Quick Start on NERSC
+
+This example uses the published operator image, which includes the `aqdrop`
+client and its SFAPI token-fetching dependency. Before starting, obtain
+`aqdrop_users` LDAP membership and create a Green SFAPI client with the
+**Perlmutter Login Nodes** source-IP preset. Save the client ID and private key
+as described in [SFAPI Authentication Setup](docs/sfapi_authentication.md).
+
+Log in to the NERSC registry if necessary, then pull the image with
+`podman-hpc`:
+
+```bash
+export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608050
+
+podman-hpc login registry.nersc.gov
+podman-hpc pull "$AQDROP_IMAGE"
+```
+
+Set the deployed development API, load the client ID, and identify the private
+key on the host:
+
+```bash
+export AQDROP_HOSTNAME=https://aqdrop-api-dev2.lbl-b59.org
+export SFAPI_CLIENT_ID="$(tr -d '\r\n' \
+  < "$HOME/.ssh/aqdrop-sfapi-client-id")"
+export SFAPI_PRIVATE_KEY_FILE="$HOME/.ssh/aqdrop-sfapi-private-key.pem"
+```
+
+Run the installed client from the image. The key is mounted read-only and the
+client fetches a short-lived SFAPI token automatically:
+
+```bash
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_CLIENT_ID \
+  -e SFAPI_PRIVATE_KEY_PATH=/run/secrets/sfapi-private-key.pem \
+  --volume \
+    "$SFAPI_PRIVATE_KEY_FILE:/run/secrets/sfapi-private-key.pem:ro" \
+  "$AQDROP_IMAGE" aqdrop queue_list
+```
+
+A successful request prints the queues available from the deployed API. A
+`401` response indicates rejected or expired SFAPI credentials; `403` means the
+authenticated NERSC identity lacks the required AQDrop LDAP membership. The
+same image also provides `aqdrop job_list` and the privileged operator commands.
+
 ## User Documentation
 
 User instructions are in [docs/](docs/). Start with
