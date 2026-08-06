@@ -94,11 +94,18 @@ cd /pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client
 operator/launch-dev-container.sh
 ```
 
-The launcher mounts the checkout read-write, opens an interactive container,
-and prints the commands for verifying and running the local Qiskit operator.
-Override `AQDROP_CLIENT_DIR`, `AQDROP_OPERATOR_IMAGE`, or
-`AQDROP_CONTAINER_RUNTIME` when a different checkout, image, or runtime is
-needed.
+The launcher defaults to `https://aqdrop-api-dev2.lbl-b59.org`. It obtains a
+fresh SFAPI token by mounting
+`$HOME/.ssh/aqdrop-sfapi-client-id` and
+`$HOME/.ssh/aqdrop-sfapi-private-key.pem` into a short-lived instance of the
+operator image; the token is validated but not displayed. It then mounts the
+checkout read-write, opens an interactive container, and prints the commands
+for verifying and running the local Qiskit operator.
+
+Override `AQDROP_HOSTNAME`, `SFAPI_CLIENT_ID_FILE`,
+`SFAPI_PRIVATE_KEY_FILE`, `AQDROP_CLIENT_DIR`, `AQDROP_OPERATOR_IMAGE`, or
+`AQDROP_CONTAINER_RUNTIME` when different API, credentials, checkout, image, or
+runtime values are needed.
 
 From the `aqdrop-client` repository root, mount only the local operator package
 and put its parent directory first on Python's import path:

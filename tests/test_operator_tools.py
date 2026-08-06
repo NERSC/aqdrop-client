@@ -86,6 +86,11 @@ def test_dev_launcher_uses_local_source_without_installing():
     launcher = (ROOT / "operator/launch-dev-container.sh").read_text()
 
     assert "/pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client" in launcher
+    assert "https://aqdrop-api-dev2.lbl-b59.org" in launcher
+    assert "$HOME/.ssh/aqdrop-sfapi-client-id" in launcher
+    assert "$HOME/.ssh/aqdrop-sfapi-private-key.pem" in launcher
+    assert "aqdrop-generate-sfapi-token" in launcher
+    assert "Token helper did not return a valid JWT" in launcher
     assert "PYTHONPATH=/workspace/aqdrop-client" in launcher
     assert "$AQDROP_CLIENT_DIR:/workspace/aqdrop-client:rw" in launcher
     assert "python -m aqdrop_operator.job_run_qiskit --id JOB_ID" in launcher
