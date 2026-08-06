@@ -86,6 +86,20 @@ The published image can supply the Python environment and dependencies while
 loading `aqdrop_operator` from a local checkout. This avoids rebuilding the
 image or reinstalling the package after each operator-code change.
 
+On `login12`, the repository includes a launcher whose default checkout is
+`/pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client`:
+
+```bash
+cd /pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client
+operator/launch-dev-container.sh
+```
+
+The launcher mounts the checkout read-write, opens an interactive container,
+and prints the commands for verifying and running the local Qiskit operator.
+Override `AQDROP_CLIENT_DIR`, `AQDROP_OPERATOR_IMAGE`, or
+`AQDROP_CONTAINER_RUNTIME` when a different checkout, image, or runtime is
+needed.
+
 From the `aqdrop-client` repository root, mount only the local operator package
 and put its parent directory first on Python's import path:
 

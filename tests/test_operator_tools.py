@@ -80,3 +80,13 @@ def test_operator_launcher_defaults_to_podman_hpc_without_source_mount():
     assert 'exec "$AQDROP_CONTAINER_RUNTIME" run' in launcher
     assert "AQDROP_CLIENT_DIR" not in launcher
     assert "/workspace/aqdrop-client" not in launcher
+
+
+def test_dev_launcher_uses_local_source_without_installing():
+    launcher = (ROOT / "operator/launch-dev-container.sh").read_text()
+
+    assert "/pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client" in launcher
+    assert "PYTHONPATH=/workspace/aqdrop-client" in launcher
+    assert "$AQDROP_CLIENT_DIR:/workspace/aqdrop-client:rw" in launcher
+    assert "python -m aqdrop_operator.job_run_qiskit --id JOB_ID" in launcher
+    assert "pip install" not in launcher
