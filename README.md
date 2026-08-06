@@ -74,6 +74,41 @@ and `qubic3` setup guide live in this repository because they consume the client
 API and Qiskit job payloads; the API server repository contains only the service
 and deployment assets.
 
+## Agent Skill
+
+The repository includes the
+[`use-aqdrop-tools`](skills/use-aqdrop-tools/SKILL.md) agent skill for operating
+the client and operator tools. It covers secure SFAPI token reuse, LDAP role
+requirements, queue and job actions, Qiskit and QPU dry runs, and safeguards for
+state-changing dispatch commands.
+
+The skill is not Codex-specific. Codex is used below as one installation
+example, but the same skill directory can be used with other tools that support
+agent skills, including Claude Code and OpenCode. Install it in the skill
+directory configured for the selected tool; directory locations and invocation
+syntax may differ between tools.
+
+For Codex, install it from the repository root with:
+
+```bash
+export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+mkdir -p "$CODEX_HOME/skills"
+cp -R skills/use-aqdrop-tools "$CODEX_HOME/skills/"
+```
+
+Restart the agent tool after installation if required for skill discovery.
+Codex may invoke the skill for matching AQDrop tasks, or invoke it explicitly
+in a prompt as shown below. Use the corresponding invocation syntax in other
+tools.
+
+```text
+Use $use-aqdrop-tools to list the queues on the AQDrop development API.
+Use $use-aqdrop-tools to dry-run Qiskit job 1005 with the operator image.
+```
+
+The skill contains no credentials. Keep the SFAPI client ID and private key in
+the external files described above and never add them to the repository.
+
 ## Library and Client
 
 The `aqdrop` Python library provides a programmatic interface to the API, allowing users to interact with the quantum testbed via Python scripts.
