@@ -1,15 +1,29 @@
 import httpx
 import inspect
+import pytest
 
 from aqdrop import defs
 from aqdrop.main import AqdropClient
 
 
 class DummyResponse:
-    def __init__(self, payload=None):
+    def __init__(self, payload=None, status_code=200):
         self._payload = payload
+        self.status_code = status_code
+        self.is_closed = False
+
+    def close(self):
+        self.is_closed = True
 
     def raise_for_status(self):
+        if self.status_code >= 400:
+            request = httpx.Request("GET", "https://aqdrop.example/test")
+            response = httpx.Response(self.status_code, request=request)
+            raise httpx.HTTPStatusError(
+                f"HTTP {self.status_code}",
+                request=request,
+                response=response,
+            )
         return None
 
     def json(self):
@@ -17,8 +31,9 @@ class DummyResponse:
 
 
 class DummyHttpxClient:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, responses=None, **kwargs):
         self.calls = []
+        self.responses = list(responses or [])
 
     def request(self, method, path, headers=None, **kwargs):
         self.calls.append(
@@ -29,6 +44,8 @@ class DummyHttpxClient:
                 "kwargs": kwargs,
             }
         )
+        if self.responses:
+            return self.responses.pop(0)
         return DummyResponse({})
 
 
@@ -83,6 +100,83 @@ def test_client_prefers_direct_token(monkeypatch):
         "token_url": "https://oidc.example/token",
     }
     assert dummy_client.calls[0]["headers"]["Authorization"] == "Bearer direct-token"
+
+
+def test_private_key_client_refreshes_once_after_unauthorized(monkeypatch):
+    unauthorized = DummyResponse(status_code=401)
+    success = DummyResponse({"ok": True})
+    dummy_client = DummyHttpxClient(responses=[unauthorized, success])
+    monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: dummy_client)
+    monkeypatch.setattr("aqdrop.main.creds.resolve_token", lambda **kwargs: "cached-token")
+
+    refreshes = []
+
+    def fake_refresh(client_id, private_key_path, token_url=None):
+        refreshes.append((client_id, private_key_path, token_url))
+        return "refreshed-token"
+
+    monkeypatch.setattr("aqdrop.main.creds.refresh_sfapi_token", fake_refresh)
+
+    client = AqdropClient(
+        host="https://aqdrop.example",
+        client_id="client-123",
+        private_key_path="/tmp/key.pem",
+        token_url="https://oidc.example/token",
+    )
+    response = client._request("GET", "/queues/")
+
+    assert response.json() == {"ok": True}
+    assert unauthorized.is_closed
+    assert refreshes == [("client-123", "/tmp/key.pem", "https://oidc.example/token")]
+    assert [call["headers"]["Authorization"] for call in dummy_client.calls] == [
+        "Bearer cached-token",
+        "Bearer refreshed-token",
+    ]
+
+
+def test_direct_token_client_does_not_refresh_after_unauthorized(monkeypatch):
+    dummy_client = DummyHttpxClient(responses=[DummyResponse(status_code=401)])
+    monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: dummy_client)
+
+    refreshes = []
+    monkeypatch.setattr(
+        "aqdrop.main.creds.refresh_sfapi_token",
+        lambda *args, **kwargs: refreshes.append((args, kwargs)),
+    )
+
+    client = AqdropClient(host="https://aqdrop.example", token="direct-token")
+    with pytest.raises(httpx.HTTPStatusError):
+        client._request("GET", "/queues/")
+
+    assert len(dummy_client.calls) == 1
+    assert refreshes == []
+
+
+def test_private_key_client_retries_unauthorized_only_once(monkeypatch):
+    dummy_client = DummyHttpxClient(
+        responses=[DummyResponse(status_code=401), DummyResponse(status_code=401)]
+    )
+    monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: dummy_client)
+    monkeypatch.setattr("aqdrop.main.creds.resolve_token", lambda **kwargs: "cached-token")
+
+    refreshes = []
+
+    def fake_refresh(*args):
+        refreshes.append(args)
+        return "refreshed-token"
+
+    monkeypatch.setattr("aqdrop.main.creds.refresh_sfapi_token", fake_refresh)
+
+    client = AqdropClient(
+        host="https://aqdrop.example",
+        client_id="client-123",
+        private_key_path="/tmp/key.pem",
+    )
+    with pytest.raises(httpx.HTTPStatusError):
+        client._request("GET", "/queues/")
+
+    assert len(dummy_client.calls) == 2
+    assert len(refreshes) == 1
 
 
 def _client_with_dummy_transport(monkeypatch):

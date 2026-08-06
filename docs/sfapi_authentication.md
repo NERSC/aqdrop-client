@@ -65,6 +65,10 @@ with a read-only request:
 aqdrop queue_list
 ```
 
+Reuse the exported `SFAPI_TOKEN` for repeated commands until it expires. This
+avoids an unnecessary client-credential exchange for each API call and is the
+preferred mode when each command starts a new disposable container.
+
 Run `aqdrop-generate-sfapi-token --help` to see all options. The optional
 `--token-url` argument is intended for testing; normal NERSC use should keep the
 default `https://oidc.nersc.gov/c2id/token` endpoint.
@@ -83,6 +87,15 @@ export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 aqdrop queue_list
 ```
 
+The private-key flow automatically caches an exchanged token in a
+permission-restricted file under `/tmp/aqdrop-<uid>/`. Before exchanging the
+credentials, the client checks the cached JWT and reuses it when its `exp`
+claim is still valid. A `401` response invalidates the cached token; the client
+then obtains a new token with the private key and retries the API request once.
+Explicit `SFAPI_TOKEN` authentication is never refreshed automatically.
+
 For container use, generate `SFAPI_TOKEN` on the host and pass it at runtime,
 or mount the private key read-only and set `SFAPI_PRIVATE_KEY_PATH` to the
-mounted location. Never bake the client ID, private key, or token into an image.
+mounted location. A container removed after each command also removes its token
+cache, so explicit `SFAPI_TOKEN` reuse is more efficient in that workflow.
+Never bake the client ID, private key, or token into an image.

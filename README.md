@@ -16,32 +16,43 @@ Log in to the NERSC registry if necessary, then pull the image with
 for access requirements and login details:
 
 ```bash
-export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608050
+export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608060
 
 podman-hpc login registry.nersc.gov
 podman-hpc pull "$AQDROP_IMAGE"
 ```
 
-Set the deployed development API, load the client ID, and identify the private
-key on the host:
+Set the deployed development API and identify both credential files on the
+host:
 
 ```bash
 export AQDROP_HOSTNAME=https://aqdrop-api-dev2.lbl-b59.org
-export SFAPI_CLIENT_ID="$(tr -d '\r\n' \
-  < "$HOME/.ssh/aqdrop-sfapi-client-id")"
+export SFAPI_CLIENT_ID_FILE="$HOME/.ssh/aqdrop-sfapi-client-id"
 export SFAPI_PRIVATE_KEY_FILE="$HOME/.ssh/aqdrop-sfapi-private-key.pem"
 ```
 
-Run the installed client from the image. The key is mounted read-only and the
-client fetches a short-lived SFAPI token automatically:
+For repeated commands, exchange the private-key credentials once and keep the
+short-lived token in the host environment. This avoids a token-endpoint request
+for every disposable container:
+
+```bash
+export SFAPI_TOKEN="$(
+  podman-hpc run --rm \
+    --volume "$SFAPI_CLIENT_ID_FILE:/run/secrets/sfapi-client-id:ro" \
+    --volume "$SFAPI_PRIVATE_KEY_FILE:/run/secrets/sfapi-private-key.pem:ro" \
+    "$AQDROP_IMAGE" \
+    aqdrop-generate-sfapi-token \
+      --client-id-file /run/secrets/sfapi-client-id \
+      --private-key-file /run/secrets/sfapi-private-key.pem
+)"
+```
+
+Pass that token to the installed client in the image:
 
 ```bash
 podman-hpc run --rm \
   -e AQDROP_HOSTNAME \
-  -e SFAPI_CLIENT_ID \
-  -e SFAPI_PRIVATE_KEY_PATH=/run/secrets/sfapi-private-key.pem \
-  --volume \
-    "$SFAPI_PRIVATE_KEY_FILE:/run/secrets/sfapi-private-key.pem:ro" \
+  -e SFAPI_TOKEN \
   "$AQDROP_IMAGE" aqdrop queue_list
 ```
 
@@ -136,6 +147,12 @@ The helper prints only the token to standard output. It does not write the
 token or private key to disk. See
 [SFAPI Authentication Setup](docs/sfapi_authentication.md) for the Iris client
 registration, source-IP selection, credential storage, and token refresh steps.
+
+For repeated client commands, generating `SFAPI_TOKEN` once and passing it to
+each command is more efficient than exchanging the client credentials for every
+call. When the SDK is configured with `SFAPI_CLIENT_ID` and
+`SFAPI_PRIVATE_KEY_PATH` instead, it caches an unexpired token in a private
+temporary file and performs one fresh private-key exchange after a `401`.
 
 ### Installation
 

@@ -73,7 +73,10 @@ export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
 
 The helper prints only the token to standard output and does not persist it.
-Refresh the token when it expires.
+Refresh the token when it expires. Reuse this `SFAPI_TOKEN` for repeated client
+commands; this is more efficient than exchanging the private-key credentials
+for every call and is the recommended approach when each `podman-hpc run --rm`
+invocation starts a new container.
 
 The client also accepts the following two configurations.
 
@@ -95,6 +98,14 @@ export SFAPI_CLIENT_ID=<your-sfapi-client-id>
 export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 export AQDROP_HOSTNAME=https://<aqdrop-api-host>
 ```
+
+In this mode, the client stores the exchanged token in a user-only temporary
+cache under `/tmp/aqdrop-<uid>/`. Subsequent client invocations sharing that
+temporary filesystem reuse the token until its JWT expiration approaches. If
+the API rejects a cached token with `401`, the client removes it, exchanges the
+private-key credentials, and retries the request once. Disposable containers
+do not share this cache unless a cache filesystem is explicitly persisted, so
+pass `SFAPI_TOKEN` to repeated disposable container calls instead.
 
 The SDK also accepts `token=...` directly, or `client_id=...` together with
 `private_key_path=...` when you construct `aqdrop.AqdropClient(...)`.
@@ -143,8 +154,9 @@ source ~/.ssh/aqdrop.creds
 ```
 
 For container use, source the credentials on the host and pass the environment
-variables into the container at runtime. Inspect `examples/pm_balewski.src` to
-see how to source credentials before the image is launched and pass the
+variables into the container at runtime. Prefer generating `SFAPI_TOKEN` once
+and passing it into each short-lived container. Inspect `examples/pm_balewski.src`
+to see how to source credentials before the image is launched and pass the
 environment variables to the image at execution time.
 
 If you use the SFAPI client-credential flow inside a container, mount the

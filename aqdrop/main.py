@@ -1,7 +1,10 @@
 from __future__ import annotations
-import httpx
-import certifi
+
+import os
 import ssl
+
+import certifi
+import httpx
 
 from . import defs, creds
 
@@ -25,9 +28,20 @@ class AqdropClient:
             token_url: Optional SFAPI token endpoint override.
         """
         self._token = None
+        self._sfapi_refresh_credentials = None
 
         if host is None:
             host = creds.get_network()
+
+        direct_token_configured = token is not None or bool(os.getenv("SFAPI_TOKEN"))
+        resolved_client_id = client_id or os.getenv("SFAPI_CLIENT_ID")
+        resolved_private_key_path = private_key_path or os.getenv("SFAPI_PRIVATE_KEY_PATH")
+        if not direct_token_configured and resolved_client_id and resolved_private_key_path:
+            self._sfapi_refresh_credentials = (
+                resolved_client_id,
+                resolved_private_key_path,
+                token_url or creds.get_token_url(),
+            )
 
         token = creds.resolve_token(
             token=token,
@@ -69,6 +83,11 @@ class AqdropClient:
         headers = kwargs.pop("headers", {})
         new_headers = self._apply_token(headers)
         req = self._client.request(method, path, headers=new_headers, **kwargs)
+        if req.status_code == 401 and self._sfapi_refresh_credentials is not None:
+            req.close()
+            self._token = creds.refresh_sfapi_token(*self._sfapi_refresh_credentials)
+            refreshed_headers = self._apply_token(headers)
+            req = self._client.request(method, path, headers=refreshed_headers, **kwargs)
         req.raise_for_status()
         return req
 

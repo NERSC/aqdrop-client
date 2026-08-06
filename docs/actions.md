@@ -58,7 +58,15 @@ export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
 
 The helper prints only the token. The client ID file must contain one value;
 the private key file must contain the matching PEM key. SFAPI access tokens are
-short-lived, so rerun the helper when the token expires.
+short-lived, so rerun the helper when the token expires. For repeated commands,
+reuse `SFAPI_TOKEN` until then instead of exchanging the credentials for each
+call.
+
+When the CLI uses `SFAPI_CLIENT_ID` and `SFAPI_PRIVATE_KEY_PATH`, it caches the
+exchanged token in a user-only temporary file and reuses it while unexpired. If
+the API returns `401`, the CLI invalidates that cache, fetches a new token with
+the private key, and retries once. Explicit `SFAPI_TOKEN` values are not
+automatically refreshed.
 
 The server derives the username from the validated token and checks NERSC LDAP.
 No separate AQDrop username is configured. The CLI action list reports the
