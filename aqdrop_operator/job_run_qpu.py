@@ -27,10 +27,8 @@ logging.getLogger("qiskit.passmanager").setLevel(logging.WARNING)
 
 
 def _print_execution_table(circL, inputMD, output):
-    print("pref_qubits", inputMD.get("pref_qubits"))
+    print("pref_qubits", inputMD["pref_qubits"])
     requested_shots = inputMD["shots"]
-    if isinstance(requested_shots, int):
-        requested_shots = [requested_shots] * len(circL)
     rows = []
     for circuit_id in range(len(output["shots"])):
         rows.append([

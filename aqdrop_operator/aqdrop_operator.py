@@ -4,11 +4,6 @@ try:
     from qcal.utils import load_from_pickle
     import qcal
     from qcal.backend.qubic.qpu import QubicQPU
-
-    from qcal.interface.superstaq.transpiler import QiskitTranspiler
-    from qcal.circuit import Barrier
-    from qcal.gate.single_qubit import Meas, X90, Z
-    from qcal.gate.two_qubit import CZ
 except ModuleNotFoundError as exc:
     if exc.name != "qcal":
         raise
@@ -23,6 +18,8 @@ from qiskit.transpiler.exceptions import TranspilerError
 
 from aqdrop import AqdropClient, defs
 from .config_utils import get_qubit_pairs
+from .coupler_flux import apply_coupler_flux, load_coupler_flux
+from .qcal_transpiler import GenericQiskitTranspiler
 from .qpy_utils import decode_circuits, encode_circuits
 
 
@@ -42,13 +39,16 @@ def qiskit_transpile(qc, **transpile_kw):
 
 def extract_physical_layout(qc):
     """Extracts physical IDs."""
-    try:
-        physQubitLayout = qc._layout.final_index_layout(filter_ancillas=True)
-        nqTot = len(physQubitLayout)
-    except:
-        nqTot = qc.num_qubits
-        physQubitLayout = [i for i in range(nqTot)]
-    return physQubitLayout
+    layout = qc._layout.final_index_layout(filter_ancillas=True)
+    return [int(qubit) for qubit in layout]
+
+
+def _extract_counts(qcal_circuit):
+    """Return ordinary string/int counts from a completed qcal circuit."""
+    return {
+        str(state): int(count)
+        for state, count in qcal_circuit.results.dict.items()
+    }
 
 
 class AqdropOperator:
@@ -67,14 +67,6 @@ class AqdropOperator:
         self.client = AqdropClient()
         self._transpile = qiskit_transpile
 
-        self.gate_mapper = {
-            'barrier':  Barrier,
-            'measure':  Meas,
-            'cz':       CZ,
-            'sx':       X90,
-            'p':        Z,
-        }
-
         # State filled in by the pipeline steps below.
         self.job_id = None
         self.job = None
@@ -91,6 +83,7 @@ class AqdropOperator:
         self.output = None
         self.phys_qubits = None
         self.qpu = None
+        self.biased_couplers = None
 
 
     def pull_job_input(self, job_id: int) -> dict:
@@ -159,11 +152,40 @@ class AqdropOperator:
 
         classifier = load_from_pickle(self.settings_config_path + "/ClassificationManager.pkl")
 
-        self.qcal_cfg = qcal.Config()
-        self.qpu = QubicQPU(self.qcal_cfg, classifier=classifier, ip_address=self.qpu_ip, port=self.qpu_port)
-
-        self.basis_gates = ['p', 'sx', 'cz']
+        self.basis_gates = chipD["basis_gates"]
+        if "rz" not in self.basis_gates:
+            raise RuntimeError(
+                f"QPU queue {chip_name} must define an rz-preserving basis, "
+                f"got {self.basis_gates}"
+        )
         self.qubit_pairs = get_qubit_pairs(f"{self.settings_config_path}/config.yaml")
+        coupler_flux = load_coupler_flux(self.settings_config_path)
+        pref_qubits = self.inputMD["pref_qubits"]
+        if not isinstance(pref_qubits, list) or not pref_qubits:
+            raise ValueError(
+                "job input must specify a non-empty pref_qubits list, "
+                f"got {pref_qubits}"
+            )
+        calibrated_qubits = set(self.cfg.qubits)
+        if not set(pref_qubits) <= calibrated_qubits:
+            raise RuntimeError(
+                f"job requested physical qubits={pref_qubits}, "
+                f"but calibrated qubits={sorted(calibrated_qubits)}"
+            )
+        self.biased_couplers = apply_coupler_flux(
+            self.cfg,
+            pref_qubits,
+            coupler_flux,
+        )
+        print(f"coupler DC biased: {self.biased_couplers or 'none'}")
+        self.qpu = QubicQPU(
+            self.cfg,
+            classifier=classifier,
+            ip_address=self.qpu_ip,
+            port=self.qpu_port,
+            n_circs_per_seq=100,
+            raster_circuits=True,
+        )
 
         print(f'qpu_connected to {chip_name}')
         if self.verb > 1:
@@ -176,30 +198,100 @@ class AqdropOperator:
         assert self.qpu is not None
 
         self.exec_date = time.strftime("%Y%m%d_%H%M%S_%Z")
-        transpiled = []
-        counts = []
-        shots = []
-        num_qubits = []
-        num_2q_gates = []
-        exec_time = []
-        phys_qubits = []
         requested_shots = self.inputMD["shots"]
-        if isinstance(requested_shots, int):
-            requested_shots = [requested_shots] * len(self.circL)
+        if not isinstance(requested_shots, list) or len(requested_shots) != len(self.circL):
+            raise ValueError(
+                "job input must contain one shot count per circuit: "
+                f"shots={requested_shots}, circuits={len(self.circL)}"
+            )
+        if any(shots <= 0 for shots in requested_shots):
+            raise ValueError(f"all shot counts must be positive: {requested_shots}")
 
-        for circuit_id, qc_ideal in enumerate(self.circL):
-            start_time = time.perf_counter()
-            qcT, count = self._run_circuit(qc_ideal, requested_shots[circuit_id])
-            if self.execJob:
-                print(f"qcT circuit_id={circuit_id}")
-                print(qcT)
-            exec_time.append(time.perf_counter() - start_time)
-            transpiled.append(qcT)
-            counts.append(count)
-            shots.append(sum(count.values()))
-            num_qubits.append(qcT.num_qubits)
-            num_2q_gates.append(sum(1 for instruction in qcT.data if len(instruction.qubits) == 2))
-            phys_qubits.append(extract_physical_layout(qcT))
+        pref_qubits = self.inputMD["pref_qubits"]
+        transpile_kw = {
+            "basis_gates": self.basis_gates,
+            "coupling_map": self.qubit_pairs,
+            "initial_layout": pref_qubits,
+        }
+        if any(qc.num_qubits != len(pref_qubits) for qc in self.circL):
+            raise ValueError(
+                f"pref_qubits={pref_qubits} does not match every "
+                "circuit's qubit count"
+            )
+
+        transpile_start = time.perf_counter()
+        transpiled = self._transpile(self.circL, **transpile_kw)
+        transpiled = list(transpiled)
+        if len(transpiled) != len(self.circL):
+            raise RuntimeError(
+                f"Qiskit transpiler returned {len(transpiled)} circuits for "
+                f"{len(self.circL)} inputs"
+            )
+
+        phys_qubits = [extract_physical_layout(qc) for qc in transpiled]
+        for circuit_id, layout in enumerate(phys_qubits):
+            if layout != pref_qubits:
+                raise RuntimeError(
+                    f"circuit {circuit_id} resolved layout={layout}, "
+                    f"expected {pref_qubits}"
+                )
+
+        delay_unit = self.inputMD["delay_unit"]
+        qcal_circuits = GenericQiskitTranspiler(
+            delay_unit=delay_unit
+        ).transpile(transpiled).circuits
+        if len(qcal_circuits) != len(transpiled):
+            raise RuntimeError(
+                f"qcal transpiler returned {len(qcal_circuits)} circuits for "
+                f"{len(transpiled)} inputs"
+            )
+
+        transpile_elapsed = time.perf_counter() - transpile_start
+        exec_time = [transpile_elapsed / len(transpiled)] * len(transpiled)
+        counts = [None] * len(qcal_circuits)
+        if self.execJob:
+            shot_groups = {}
+            for circuit_id, num_shots in enumerate(requested_shots):
+                shot_groups.setdefault(num_shots, []).append(circuit_id)
+
+            for num_shots, circuit_ids in shot_groups.items():
+                circuit_batch = [qcal_circuits[index] for index in circuit_ids]
+                print(
+                    f"execution started: {len(circuit_batch)} circuits, "
+                    f"{num_shots} shots each"
+                )
+                execution_start = time.perf_counter()
+                self.qpu.run(circuit_batch, n_shots=num_shots, save=False)
+                execution_elapsed = time.perf_counter() - execution_start
+                returned_circuits = list(self.qpu.circuits)
+                if len(returned_circuits) != len(circuit_batch):
+                    raise RuntimeError(
+                        f"QPU returned {len(returned_circuits)} circuits for "
+                        f"{len(circuit_batch)} inputs"
+                    )
+                per_circuit_elapsed = execution_elapsed / len(circuit_ids)
+                for circuit_id, qcal_circuit in zip(
+                    circuit_ids, returned_circuits
+                ):
+                    counts[circuit_id] = _extract_counts(qcal_circuit)
+                    exec_time[circuit_id] += per_circuit_elapsed
+                print(
+                    f"execution finished, elapsed {int(execution_elapsed)} sec"
+                )
+        else:
+            counts = [{"skip_run": 0} for _ in qcal_circuits]
+
+        shots = [sum(count.values()) for count in counts]
+        num_qubits = [qc.num_qubits for qc in transpiled]
+        num_2q_gates = [
+            sum(
+                1
+                for instruction in qc.data
+                if len(instruction.qubits) == 2
+                and instruction.operation.name != "barrier"
+            )
+            for qc in transpiled
+        ]
 
         self.transpiled = transpiled
         self.counts = counts
@@ -245,25 +337,3 @@ class AqdropOperator:
         job = self.client.dispatch_job(self.job_id, defs.JobStatus.SUCCESS, self.output)
         print(f'pushed job_output for job_id={self.job_id}, status={defs.JobStatus.SUCCESS.value}')
         return job
-
-
-    # NOTE: for now we assume that any job is a qiskit job; this may change later
-    def _run_circuit(self, qc: qiskit.QuantumCircuit, num_shots: int):
-        pref_qubits = self.inputMD.get("pref_qubits")
-        transpile_kw = dict(basis_gates=self.basis_gates, coupling_map=self.qubit_pairs)
-        if pref_qubits is not None:
-            #pref_qubits = [2,1] #tmp for testing
-            print("pref_qubits", pref_qubits, "qc.num_qubits", qc.num_qubits)
-            transpile_kw["initial_layout"] = pref_qubits
-
-        qcT = self._transpile(qc, **transpile_kw)
-
-        qcal_transpiler = QiskitTranspiler(gate_mapper=self.gate_mapper)
-        qcQ = qcal_transpiler.transpile(qcT)[0]
-
-        if self.execJob:
-            self.qpu.run(qcQ, n_shots=num_shots)
-            counts = dict(qcQ.results.counts)
-        else:
-            counts = {'skip_run': 0}
-        return (qcT, counts)
