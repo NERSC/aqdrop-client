@@ -48,7 +48,19 @@ fi
 export AQDROP_HOSTNAME SFAPI_TOKEN
 echo "SFAPI token obtained; starting the development container." >&2
 
-AQDROP_DEV_BANNER=$'Local AQDrop client source is mounted at /workspace/aqdrop-client.\n\nVerify the operator source in use:\n  python -c '\''import inspect, aqdrop_operator; print(inspect.getfile(aqdrop_operator))'\''\n\nRun the locally changed Qiskit operator as a dry run:\n  python -m aqdrop_operator.job_run_qiskit --id JOB_ID\n\nExecute and dispatch only after the dry run succeeds:\n  python -m aqdrop_operator.job_run_qiskit --id JOB_ID --execJob\n'
+AQDROP_DEV_BANNER=$(cat <<'EOF'
+Local AQDrop client source is mounted at /workspace/aqdrop-client.
+
+Verify the operator source in use:
+  python -c "import inspect, aqdrop_operator; print(inspect.getfile(aqdrop_operator))"
+
+Run the locally changed Qiskit operator as a dry run:
+  python -m aqdrop_operator.job_run_qiskit --id JOB_ID
+
+Execute and dispatch only after the dry run succeeds:
+  python -m aqdrop_operator.job_run_qiskit --id JOB_ID --execJob
+EOF
+)
 export AQDROP_DEV_BANNER
 
 exec "$AQDROP_CONTAINER_RUNTIME" run --rm -it \

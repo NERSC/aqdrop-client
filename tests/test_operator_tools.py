@@ -91,6 +91,8 @@ def test_dev_launcher_uses_local_source_without_installing():
     assert "$HOME/.ssh/aqdrop-sfapi-private-key.pem" in launcher
     assert "aqdrop-generate-sfapi-token" in launcher
     assert "Token helper did not return a valid JWT" in launcher
+    assert "AQDROP_DEV_BANNER=$(cat <<'EOF'" in launcher
+    assert "\\n\\nRun the locally changed" not in launcher
     assert "PYTHONPATH=/workspace/aqdrop-client" in launcher
     assert "$AQDROP_CLIENT_DIR:/workspace/aqdrop-client:rw" in launcher
     assert "python -m aqdrop_operator.job_run_qiskit --id JOB_ID" in launcher
