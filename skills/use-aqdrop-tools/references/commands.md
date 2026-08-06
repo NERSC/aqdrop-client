@@ -94,14 +94,25 @@ aqdrop job_dump --id JOB_ID
 Run the Qiskit path without dispatching results:
 
 ```bash
-aqdrop-run-qiskit --id JOB_ID
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  "$AQDROP_IMAGE" aqdrop-run-qiskit --id JOB_ID
 ```
 
 Only after explicit execution approval and a successful dry run:
 
 ```bash
-aqdrop-run-qiskit --id JOB_ID --execJob
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  "$AQDROP_IMAGE" aqdrop-run-qiskit --id JOB_ID --execJob
 ```
+
+Do not invoke `./job_run_qiskit.py` from an `aqdrop-server/operator` checkout.
+That is a retired implementation. If a traceback references
+`/aqdrop-server/operator/QiskitOperator.py`, exit that environment and rerun the
+installed `aqdrop-run-qiskit` command from the published operator image.
 
 The Qiskit mapping is currently fixed:
 

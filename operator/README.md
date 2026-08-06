@@ -63,6 +63,20 @@ podman-hpc run --rm \
   aqdrop-operator:latest aqdrop queue_list
 ```
 
+Run one simulator job from the published image in dry-run mode with:
+
+```bash
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  "$AQDROP_IMAGE" aqdrop-run-qiskit --id JOB_ID
+```
+
+Add `--execJob` only after the dry run succeeds and execution is explicitly
+approved. The supported runner imports
+`aqdrop_operator.qiskit_operator.QiskitOperator` from the installed package and
+calls `AqdropClient.get_job(job_id)` without legacy keyword arguments.
+
 Outside NERSC, replace `podman-hpc` with the container builder/runtime available
 on that host, such as `podman` or Docker.
 

@@ -66,6 +66,13 @@ def test_operator_image_installs_client_and_operator_package():
     assert "COPY aqdrop_operator ./aqdrop_operator" in dockerfile
 
 
+def test_qiskit_operator_uses_current_get_job_signature():
+    source = (ROOT / "aqdrop_operator/qiskit_operator.py").read_text()
+
+    assert "self.client.get_job(job_id)" in source
+    assert "extract_qpy" not in source
+
+
 def test_operator_launcher_defaults_to_podman_hpc_without_source_mount():
     launcher = (ROOT / "operator/launch-qubic3.sh").read_text()
 
