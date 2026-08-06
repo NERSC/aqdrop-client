@@ -13,6 +13,13 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
+if not __package__:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    __package__ = "aqdrop_operator"
+
 from aqdrop import AqdropClient, defs
 
 

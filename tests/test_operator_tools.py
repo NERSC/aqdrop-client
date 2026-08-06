@@ -73,6 +73,18 @@ def test_qiskit_operator_uses_current_get_job_signature():
     assert "extract_qpy" not in source
 
 
+@pytest.mark.parametrize(
+    "script_name",
+    ("job_run_qiskit.py", "job_run_qpu.py", "operator_daemon.py"),
+)
+def test_operator_scripts_support_direct_execution(script_name):
+    source = (ROOT / "aqdrop_operator" / script_name).read_text()
+
+    assert "if not __package__:" in source
+    assert "Path(__file__).resolve().parents[1]" in source
+    assert '__package__ = "aqdrop_operator"' in source
+
+
 def test_operator_launcher_defaults_to_podman_hpc_without_source_mount():
     launcher = (ROOT / "operator/launch-qubic3.sh").read_text()
 
@@ -95,5 +107,5 @@ def test_dev_launcher_uses_local_source_without_installing():
     assert "\\n\\nRun the locally changed" not in launcher
     assert "PYTHONPATH=/workspace/aqdrop-client" in launcher
     assert "$AQDROP_CLIENT_DIR:/workspace/aqdrop-client:rw" in launcher
-    assert "python -m aqdrop_operator.job_run_qiskit --id JOB_ID" in launcher
+    assert "python job_run_qiskit.py --id JOB_ID" in launcher
     assert "pip install" not in launcher

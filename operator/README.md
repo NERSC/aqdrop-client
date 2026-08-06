@@ -146,6 +146,25 @@ the installed command. Verify which source is active with:
 python -c 'import inspect, aqdrop_operator; print(inspect.getfile(aqdrop_operator))'
 ```
 
+The executable modules also support direct execution. From the package
+directory:
+
+```bash
+cd /workspace/aqdrop-client/aqdrop_operator
+python job_run_qiskit.py --id JOB_ID
+python job_run_qiskit.py --id JOB_ID --execJob
+python job_run_qpu.py --id JOB_ID
+python job_run_qpu.py --id JOB_ID --execJob
+python operator_daemon.py --owner USERNAME --idRange MIN_ID MAX_ID
+```
+
+Each script adds the checkout root to its import path and establishes the
+`aqdrop_operator` package context, so relative imports continue to work. The
+`python -m aqdrop_operator.SCRIPT_MODULE` and installed-command forms remain
+supported. Both one-job runners are dry runs without `--execJob`; the daemon
+executes matching queued jobs and should be started only with an intentional,
+bounded scope.
+
 The path should begin with `/workspace/aqdrop_operator`. If a change also
 modifies the base `aqdrop` client package, mount
 `$PWD/aqdrop:/workspace/aqdrop:ro` in the same command so both local packages

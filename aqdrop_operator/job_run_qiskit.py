@@ -14,6 +14,13 @@ connecting to a QPU. Jobs must come from one of these simulator queues:
 
 import argparse
 
+if not __package__:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    __package__ = "aqdrop_operator"
+
 from .qiskit_operator import QiskitOperator
 
 

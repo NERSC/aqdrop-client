@@ -55,10 +55,11 @@ Verify the operator source in use:
   python -c "import inspect, aqdrop_operator; print(inspect.getfile(aqdrop_operator))"
 
 Run the locally changed Qiskit operator as a dry run:
-  python -m aqdrop_operator.job_run_qiskit --id JOB_ID
+  cd /workspace/aqdrop-client/aqdrop_operator
+  python job_run_qiskit.py --id JOB_ID
 
 Execute and dispatch only after the dry run succeeds:
-  python -m aqdrop_operator.job_run_qiskit --id JOB_ID --execJob
+  python job_run_qiskit.py --id JOB_ID --execJob
 EOF
 )
 export AQDROP_DEV_BANNER
