@@ -80,6 +80,56 @@ calls `AqdropClient.get_job(job_id)` without legacy keyword arguments.
 Outside NERSC, replace `podman-hpc` with the container builder/runtime available
 on that host, such as `podman` or Docker.
 
+## Run Local Operator Changes
+
+The published image can supply the Python environment and dependencies while
+loading `aqdrop_operator` from a local checkout. This avoids rebuilding the
+image or reinstalling the package after each operator-code change.
+
+From the `aqdrop-client` repository root, mount only the local operator package
+and put its parent directory first on Python's import path:
+
+```bash
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  -e PYTHONPATH=/workspace \
+  -e PYTHONDONTWRITEBYTECODE=1 \
+  --volume "$PWD/aqdrop_operator:/workspace/aqdrop_operator:ro" \
+  "$AQDROP_IMAGE" aqdrop-run-qiskit --id JOB_ID
+```
+
+The installed `aqdrop-run-qiskit`, `aqdrop-run-qpu`, and `aqdrop-operator`
+commands will import `aqdrop_operator` from `/workspace` instead of the copy
+installed in the image. Each command starts a new Python process, so edits made
+on the host are used on the next invocation. Keep the mount read-only when the
+source is edited on the host.
+
+For an interactive development shell that can edit the checkout, use a
+read-write mount:
+
+```bash
+podman-hpc run --rm -it \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  -e PYTHONPATH=/workspace \
+  -e PYTHONDONTWRITEBYTECODE=1 \
+  --volume "$PWD/aqdrop_operator:/workspace/aqdrop_operator:rw" \
+  "$AQDROP_IMAGE" bash
+```
+
+Inside the container, edit files under `/workspace/aqdrop_operator` and rerun
+the installed command. Verify which source is active with:
+
+```bash
+python -c 'import inspect, aqdrop_operator; print(inspect.getfile(aqdrop_operator))'
+```
+
+The path should begin with `/workspace/aqdrop_operator`. If a change also
+modifies the base `aqdrop` client package, mount
+`$PWD/aqdrop:/workspace/aqdrop:ro` in the same command so both local packages
+are loaded together.
+
 ## Environment
 
 Set these variables before starting a runner:
