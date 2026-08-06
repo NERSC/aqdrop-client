@@ -11,7 +11,9 @@ client and its SFAPI token-fetching dependency. Before starting, obtain
 as described in [SFAPI Authentication Setup](docs/sfapi_authentication.md).
 
 Log in to the NERSC registry if necessary, then pull the image with
-`podman-hpc`:
+`podman-hpc`. See the
+[NERSC registry login instructions](https://docs.nersc.gov/development/containers/registry/#login-to-the-registry)
+for access requirements and login details:
 
 ```bash
 export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608050
