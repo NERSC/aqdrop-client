@@ -46,7 +46,7 @@ ssh -J perlmutter.nersc.gov login12
 Do not include token values in agent output or shell tracing.
 
 The production image requires NERSC registry access to project `m4916`.
-Override both variables only when the user explicitly requests a development
+Override `AQDROP_IMAGE` and `AQDROP_HOSTNAME` only when the user explicitly requests a development
 environment such as `https://aqdrop-api-dev2.lbl-b59.org`.
 
 ## Client Actions And Roles
