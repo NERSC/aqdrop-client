@@ -1,10 +1,13 @@
 FROM ubuntu:24.04
 
-# HPC-Podman on PM: 
-#  time  podman-hpc  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1d	
-# additionaly do 1 time:      podman-hpc migrate ubu24-aqdrop:p1
-# on macOS:  
-#    podman  build  -f ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p1d    --platform linux/arm64
+# Build from the aqdrop-client repository root. At NERSC use podman-hpc:
+# podman-hpc build -f examples/ubu24-aqdrop.dockerfile \
+#   -t ubu24-aqdrop:latest .
+# podman-hpc migrate ubu24-aqdrop:latest
+#
+# Outside NERSC, substitute the available builder, for example:
+# podman build -f examples/ubu24-aqdrop.dockerfile \
+#   -t ubu24-aqdrop:latest --platform linux/arm64 .
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/Los_Angeles \
@@ -65,8 +68,14 @@ RUN python3 -m venv "${VIRTUAL_ENV}" && \
         scikit-learn \
         scipy
 
-# -- AQDrop speciffic ---
-RUN python3 -m venv "${VIRTUAL_ENV}" && \
-     pip install  aqdrop[qiskit] qiskit-aer qiskit-ibm-runtime
-RUN pip install --upgrade "aqdrop"
+# Install AQDrop from the checkout used as the build context.
+WORKDIR /opt/aqdrop-client
+COPY pyproject.toml README.md license.txt ./
+COPY aqdrop ./aqdrop
+COPY aqdrop_operator ./aqdrop_operator
+RUN python -m pip install --no-cache-dir \
+        ".[qiskit]" \
+        qiskit-aer \
+        qiskit-ibm-runtime && \
+    aqdrop --help >/dev/null
 CMD ["/bin/bash"]

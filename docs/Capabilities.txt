@@ -3,23 +3,21 @@ How the software was built
 
 The overall solution spans three complementary layers.
 
-The thin Python SDK is packaged with setuptools for pip installation (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for members, queues, and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
+The thin Python SDK is packaged with setuptools for installation from the NERSC GitHub repository (Python 3.12 or newer). It uses an HTTP client over TLS to call the REST API, obtains SFAPI bearer tokens from the standard token endpoint, and exposes a programmatic client plus a CLI that dispatches subcommands for queues and jobs. Tabulate supports table output; Qiskit is used so quantum circuits can be serialized with QPY and embedded in job payloads where required.
 
-The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. OAuth2-style password flows issue signed JWTs; role checks separate ordinary members, operators, and administrators. Job, queue, and member endpoints persist state through CRUD layers against PostgreSQL. Container definitions bundle the API service, database image, and optional browser-facing tier with orchestration scripts for local or staged rollout.
+The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. NERSC SFAPI bearer-token authentication identifies callers, while NERSC LDAP groups grant ordinary, operator, and administrator access. Job ownership and audit attribution use NERSC usernames directly; AQDrop does not maintain local user accounts. Job and queue endpoints persist state through CRUD layers against PostgreSQL.
 
-The browser tier is a Flask application served with Gunicorn. Sessions hold API tokens; pages render dashboards for queues and jobs and offer flows to inspect queues and submit or view jobs. Those views call the same Python SDK against the configured API URL.
-
-Operator-side tooling runs outside that HTTP tier on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API.
+Operator-side tooling runs on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API. The operator container installs the same client package and its operator extra. At NERSC, container workflows use `podman-hpc`; other sites can use their available OCI-compatible build and runtime tools.
 
 
 Capabilities
 ------------
 
-• Authenticated access to the central service: login, JWT reuse, session-backed login for interactive browser users.
+• Authenticated access to the central service using SFAPI bearer tokens.
 
-• Member lifecycle and governance: accounts created or adjusted by privileged roles; suspension prevents login; operators and admins can perform elevated reads and updates where the API allows.
+• LDAP authorization: `aqdrop_users`, `aqdrop_operator`, and `aqdrop_admin` membership controls access without local account management.
 
-• Queue management: define queues with capacity, access defaults, topology limits, and lifecycle state; list and filter queues for monitoring.
+• Queue management: define queues with capacity, topology limits, type, and lifecycle state; list and filter queues for monitoring.
 
 • Job management: submit structured job input (including Qiskit circuits with shot metadata when using the SDK); query jobs by id, queue, owner, or status; retrieve results; check status; cancel or dispatch updates subject to permissions.
 
@@ -31,4 +29,4 @@ Capabilities
 Intended end-use
 ----------------
 
-The software supports the Advanced Quantum Testbed (AQT) management model: a single service mediates access to constrained quantum execution resources rather than exposing hardware ad hoc. Researchers and application authors use the Python SDK to submit work, monitor queues, and inspect outcomes. Administrators and operators configure members and queues and, on systems where it is deployed, run the execution side that bridges queued API jobs to simulators or controlled hardware. Typical deployment aligns with institutional high-performance computing environments (for example coordinated use of facility resources such as those at NERSC) while the same components can be adapted for laboratory or containerized installs.
+The software supports the Advanced Quantum Testbed (AQT) management model: a single service mediates access to constrained quantum execution resources rather than exposing hardware ad hoc. Researchers and application authors use the Python SDK to submit work, monitor queues, and inspect outcomes. Administrators configure queues, while operators run the execution side that bridges queued API jobs to simulators or controlled hardware. NERSC LDAP administrators manage role membership outside AQDrop. Typical deployment aligns with institutional high-performance computing environments while the same components can be adapted for laboratory or containerized installs.

@@ -5,11 +5,10 @@ import httpx
 import tabulate
 
 from aqdrop import cli_utils
-from aqdrop import creds
 
 
 def action_info():
-    return {"operator": True, "user": True, "description": "Check job status and output"}
+    return {"access": "user (own); admin/operator (any)", "description": "Check job status and output"}
 
 
 def add_args(parser: argparse.ArgumentParser):

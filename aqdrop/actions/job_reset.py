@@ -4,11 +4,10 @@ import argparse
 import httpx
 
 from aqdrop import cli_utils
-from aqdrop import creds
 
 
 def action_info():
-    return {"operator": True, "user": False, "description": "Reset a job"}
+    return {"access": "operator", "description": "Reset a job"}
 
 
 def add_args(parser: argparse.ArgumentParser):

@@ -5,11 +5,10 @@ import tabulate
 import httpx
 
 from aqdrop import cli_utils, defs
-from aqdrop import creds
 
 
 def action_info():
-    return {"operator": False, "user": False, "description": "Create a new queue"}
+    return {"access": "admin", "description": "Create a new queue"}
 
 
 def add_args(parser: argparse.ArgumentParser):

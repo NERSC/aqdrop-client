@@ -1,7 +1,6 @@
 import httpx
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from . import creds
 
 PT_TIMEZONE = ZoneInfo("America/Los_Angeles")
 DB_TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
@@ -16,7 +15,7 @@ def connect_verbose():
         print("Connecting...")
         from .main import AqdropClient
         c = AqdropClient()
-        print(f"Connected to AQDROP service as user {creds.get_username()}.\n")
+        print("AQDrop client configured.\n")
     except httpx.ConnectError as e:
         print("Could not connect to AQDROP service. Is environment variable AQDROP_HOSTNAME properly set?")
         print(f"Error: {e}")

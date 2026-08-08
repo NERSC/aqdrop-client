@@ -1,44 +1,58 @@
 from __future__ import annotations
-import httpx
-import certifi
-import ssl
-import base64
-import io
-import tempfile
+
 import os
-import typing
+import ssl
+
+import certifi
+import httpx
 
 from . import defs, creds
 
 
 class AqdropClient:
     """Client for interacting with the AQDROP service API."""
+
     def __init__(self,
-                 username: str | None = None,
-                 password: str | None = None,
-                 host: str | None = None):
-        """Initializes the AqdropClient and logs in.
+                 host: str | None = None,
+                 token: str | None = None,
+                 client_id: str | None = None,
+                 private_key_path: str | None = None,
+                 token_url: str | None = None):
+        """Initialize an authenticated AQDrop client.
 
         Args:
-            username: The username for authentication. Defaults to AQDROP_USERNAME.
-            password: The password for authentication. Defaults to AQDROP_PASSWORD.
             host: The service host. Defaults to AQDROP_HOSTNAME.
+            token: An existing SFAPI bearer token.
+            client_id: SFAPI client ID used to fetch a bearer token.
+            private_key_path: Private key used with the SFAPI client ID.
+            token_url: Optional SFAPI token endpoint override.
         """
         self._token = None
-
-        if username is None:
-            username = creds.get_username()
-
-        if password is None:
-            password = creds.get_password()
+        self._sfapi_refresh_credentials = None
 
         if host is None:
             host = creds.get_network()
 
+        direct_token_configured = token is not None or bool(os.getenv("SFAPI_TOKEN"))
+        resolved_client_id = client_id or os.getenv("SFAPI_CLIENT_ID")
+        resolved_private_key_path = private_key_path or os.getenv("SFAPI_PRIVATE_KEY_PATH")
+        if not direct_token_configured and resolved_client_id and resolved_private_key_path:
+            self._sfapi_refresh_credentials = (
+                resolved_client_id,
+                resolved_private_key_path,
+                token_url or creds.get_token_url(),
+            )
+
+        token = creds.resolve_token(
+            token=token,
+            client_id=client_id,
+            private_key_path=private_key_path,
+            token_url=token_url,
+        )
+
         ctx = ssl.create_default_context(cafile=certifi.where())
         self._client = httpx.Client(base_url=host.rstrip("/"), timeout=10, verify=ctx)
-
-        self._login(username, password)
+        self._token = token
 
 
     def _apply_token(self, headers: dict):
@@ -69,136 +83,13 @@ class AqdropClient:
         headers = kwargs.pop("headers", {})
         new_headers = self._apply_token(headers)
         req = self._client.request(method, path, headers=new_headers, **kwargs)
+        if req.status_code == 401 and self._sfapi_refresh_credentials is not None:
+            req.close()
+            self._token = creds.refresh_sfapi_token(*self._sfapi_refresh_credentials)
+            refreshed_headers = self._apply_token(headers)
+            req = self._client.request(method, path, headers=refreshed_headers, **kwargs)
         req.raise_for_status()
         return req
-
-
-    def _login(self, username, password):
-        """Authenticates the client and stores the access token.
-
-        Args:
-            username: The username.
-            password: The password.
-
-        Returns:
-            str: The access token.
-        """
-        req_json = {"username": username, "password": password}
-        login_request = self._request("POST", "/token/",
-                                      data=req_json,
-                                      headers={"Content-Type": "application/x-www-form-urlencoded"})
-        login_response = login_request.json()
-        self._token = login_response["access_token"]
-
-        return self._token
-
-
-    def create_member(self, username: str, email: str | None = None):
-        """Creates a new member in the system.
-
-        Args:
-            username: The username of the new member.
-            email: Optional email address of the new member.
-
-        Returns:
-            dict: The API response for the created member.
-        """
-        req_json = { "name": username }
-
-        if email is not None:
-            req_json["email"] = email
-
-        create_request = self._request("POST", "/members/", json=req_json)
-        return create_request.json()
-
-
-    def get_member_list(self):
-        """Retrieves a list of all members.
-
-        Returns:
-            list: A list of member dictionaries.
-        """
-        get_request = self._request("GET", "/members/")
-        return get_request.json()
-
-
-    def get_member(self, name: str):
-        """Retrieves details for a specific member.
-
-        Args:
-            name: The username of the member.
-
-        Returns:
-            dict: Member details.
-        """
-        get_request = self._request("GET", f"/members/{name}")
-        return get_request.json()
-
-
-    # TODO: use pydantic for cleaner queries
-    def update_member(self, name: str,
-                      new_name: str | None = None,
-                      new_email: str | None = None,
-                      new_password: str | None = None,
-                      is_active: bool | None = None
-                      ):
-        """Updates a member's profile information.
-
-        Args:
-            name: The username of the member to update.
-            new_name: Optional new username.
-            new_email: Optional new email.
-            new_password: Optional new password.
-            is_active: Optional activity status.
-
-        Returns:
-            dict: The API response for the updated member.
-        """
-        req_json = {}
-        if new_name is not None: req_json["name"] = new_name
-        if new_email is not None: req_json["email"] = new_email
-        if new_password is not None: req_json["password"] = new_password
-        if is_active is not None: req_json["is_active"] = is_active
-        patch_request = self._request("PATCH", f"/members/{name}", json=req_json)
-        # TODO: decide: do we need to log in again?
-        return patch_request.json()
-
-
-    def delete_member(self, name: str):
-        """Deletes a member from the system.
-
-        Args:
-            name: The username of the member to delete.
-
-        Returns:
-            dict: The API response for the deleted member.
-        """
-        delete_request = self._request("DELETE", f"/members/{name}")
-        return delete_request.json()
-
-
-    def update_member_perms(self, name: str,
-                            is_admin: bool | None = None,
-                            is_operator: bool | None = None,
-                            is_suspended: bool | None = None
-                            ):
-        """Updates a member's administrative permissions.
-
-        Args:
-            name: The username of the member.
-            is_admin: Optional admin status.
-            is_operator: Optional operator status.
-            is_suspended: Optional suspension status.
-
-        Returns:
-            dict: The API response for the updated permissions.
-        """
-        req_json = {}
-        if is_admin is not None: req_json["is_admin"] = is_admin
-        if is_operator is not None: req_json["is_operator"] = is_operator
-        if is_suspended is not None: req_json["is_suspended"] = is_suspended
-        patch_request = self._request("PATCH", f"/members/{name}/role/", json=req_json)
-        return patch_request.json()
 
 
     def _validate_job(self, queue_name: str, job_input: dict):
@@ -246,7 +137,7 @@ class AqdropClient:
             job_id: The ID of the job.
 
         Returns:
-            dict: Job details. Returns an empty dict or {"qc": None} if not found.
+            dict: Job details, or an empty dictionary when the job is not found.
         """
         try:
             get_request = self._request("GET", f"/job/?job_id={job_id}")
@@ -377,13 +268,17 @@ class AqdropClient:
 
     def update_queue(self, queue_name: str,
                      new_limit: int | None = None,
-                     new_state: defs.QueueState | None = None):
+                     new_state: defs.QueueState | None = None,
+                     new_max_qubits: int | None = None,
+                     new_type: defs.QueueType | None = None):
         """Updates a queue's configuration.
 
         Args:
             queue_name: The name of the queue.
             new_limit: Optional new limit per member.
             new_state: Optional new state (from defs.QueueState).
+            new_max_qubits: Optional new maximum qubit count.
+            new_type: Optional new queue type.
 
         Returns:
             dict: The API response for the updated queue.
@@ -391,6 +286,8 @@ class AqdropClient:
         req_json = {}
         if new_limit is not None: req_json["limit_per_member"] = new_limit
         if new_state is not None: req_json["state"] = new_state.value
+        if new_max_qubits is not None: req_json["max_qubits"] = new_max_qubits
+        if new_type is not None: req_json["type"] = new_type.value
         r = self._request("PATCH", f"/queue/{queue_name}", json=req_json)
         return r.json()
 
@@ -400,7 +297,6 @@ class AqdropClient:
                    id_max: int | None = None,
                    queue_name: str | None = None,
                    owner_name: str | None = None,
-                   owner_id: int | None = None,
                    status: defs.JobStatus | None = None,
                    max_jobs: int | None = None,
                    created_min: str | None = None,
@@ -413,7 +309,6 @@ class AqdropClient:
             id_max: Maximum job ID.
             queue_name: Filter by queue name.
             owner_name: Filter by owner username.
-            owner_id: Filter by owner ID.
             status: Filter by job status (from defs.JobStatus).
             max_jobs: Maximum number of jobs to return.
             created_min: Minimum creation date.
@@ -428,21 +323,10 @@ class AqdropClient:
         if id_max is not None: req_params["id_max"] = id_max
         if queue_name is not None: req_params["queue_name"] = queue_name
         if owner_name is not None: req_params["owner_name"] = owner_name
-        if owner_id is not None: req_params["owner_id"] = owner_id
         if status is not None: req_params["status"] = status.value
         if max_jobs is not None: req_params["max_jobs"] = max_jobs
         if created_min is not None: req_params["created_min"] = created_min
         if created_max is not None: req_params["created_max"] = created_max
         if reverse: req_params["reverse"] = "true"
         r = self._request("GET", "/jobs/", params=req_params)
-        return r.json()
-
-
-    def list_members(self):
-        """Retrieves a list of all members.
-
-        Returns:
-            list: A list of member dictionaries.
-        """
-        r = self._request("GET", "/members/")
         return r.json()

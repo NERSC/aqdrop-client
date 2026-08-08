@@ -9,3 +9,6 @@ old/
 *~
 .ipynb_checkpoints/
 *.creds
+*~
+out/
+old/

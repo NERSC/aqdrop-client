@@ -1,6 +1,6 @@
 AQDrop is a job management system designed to streamline access to the Advanced Quantum Testbed (AQT) at NERSC (National Energy Research Scientific Computing Center). It serves as a centralized middleware layer between researchers and quantum processing hardware.
 
-Key Features: AQDrop provides a FastAPI-based server backed by PostgreSQL for job submission, queue management, and role-based access control (members, operators, and administrators). Users submit Qiskit circuits via JSON payloads, which are queued, dispatched to the QPU through the Qubic API, and returned as measurement counts. A Python client library and web dashboard round out the interface options.
+Key Features: AQDrop provides a FastAPI-based server backed by PostgreSQL for job submission and queue management. NERSC SFAPI tokens authenticate callers, while NERSC LDAP groups grant user, operator, and administrator access. Users submit Qiskit circuits via JSON payloads, which are queued, dispatched to the QPU through the Qubic API, and returned as measurement counts. A Python client library rounds out the interface options.
 
 Primary Use: Researchers submit quantum circuit jobs from a laptop or login node; an operator client executes those jobs on the AQT's physical QPU and returns results — all coordinated through the central API.
 
@@ -29,5 +29,4 @@ Quantum Software Development
 Developers building quantum applications can use AQDrop's API and Python library as a testing ground for validating algorithms against real hardware rather than simulators.
 
 Interested Parties include national laboratories, academic research groups, quantum hardware developers, government agencies funding quantum initiatives (such as DOE and NSF), and university quantum computing centers.
-
 
