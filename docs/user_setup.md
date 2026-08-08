@@ -69,7 +69,7 @@ helper:
 export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
   --client-id-file "$HOME/.ssh/aqdrop-sfapi-client-id" \
   --private-key-file "$HOME/.ssh/aqdrop-sfapi-private-key.pem")"
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 ```
 
 The helper prints only the token to standard output and does not persist it.
@@ -84,7 +84,7 @@ Existing SFAPI bearer token:
 
 ```bash
 export SFAPI_TOKEN=<your-sfapi-token>
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 ```
 
 This token is issued by NERSC outside AQDrop. AQDrop does not issue bearer
@@ -96,7 +96,7 @@ Automatic SFAPI token fetch with client credentials:
 ```bash
 export SFAPI_CLIENT_ID=<your-sfapi-client-id>
 export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 ```
 
 In this mode, the client stores the exchanged token in a user-only temporary
@@ -115,14 +115,14 @@ Programmatic examples:
 ```python
 import aqdrop
 
-client = aqdrop.AqdropClient(host="https://<aqdrop-api-host>", token="<sfapi-token>")
+client = aqdrop.AqdropClient(host="https://aqdrop-api.nersc.gov", token="<sfapi-token>")
 ```
 
 ```python
 import aqdrop
 
 client = aqdrop.AqdropClient(
-    host="https://<aqdrop-api-host>",
+    host="https://aqdrop-api.nersc.gov",
     client_id="<sfapi-client-id>",
     private_key_path="/path/to/private-key.pem",
 )

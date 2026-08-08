@@ -53,7 +53,7 @@ the credential to the terminal:
 export SFAPI_TOKEN="$(aqdrop-generate-sfapi-token \
   --client-id-file "$HOME/.ssh/aqdrop-sfapi-client-id" \
   --private-key-file "$HOME/.ssh/aqdrop-sfapi-private-key.pem")"
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 ```
 
 The helper exchanges a signed client assertion at the NERSC OIDC token
@@ -82,7 +82,7 @@ whereas `SFAPI_PRIVATE_KEY_PATH` contains a path:
 ```bash
 export SFAPI_CLIENT_ID="$(<"$HOME/.ssh/aqdrop-sfapi-client-id")"
 export SFAPI_PRIVATE_KEY_PATH="$HOME/.ssh/aqdrop-sfapi-private-key.pem"
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 
 aqdrop queue_list
 ```

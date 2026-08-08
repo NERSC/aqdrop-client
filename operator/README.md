@@ -94,7 +94,7 @@ cd /pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client
 operator/launch-dev-container.sh
 ```
 
-The launcher defaults to `https://aqdrop-api-dev2.lbl-b59.org`. It obtains a
+The launcher defaults to `https://aqdrop-api.nersc.gov`. It obtains a
 fresh SFAPI token by mounting
 `$HOME/.ssh/aqdrop-sfapi-client-id` and
 `$HOME/.ssh/aqdrop-sfapi-private-key.pem` into a short-lived instance of the
@@ -106,6 +106,12 @@ Override `AQDROP_HOSTNAME`, `SFAPI_CLIENT_ID_FILE`,
 `SFAPI_PRIVATE_KEY_FILE`, `AQDROP_CLIENT_DIR`, `AQDROP_OPERATOR_IMAGE`, or
 `AQDROP_CONTAINER_RUNTIME` when different API, credentials, checkout, image, or
 runtime values are needed.
+
+The published production image is
+`registry.nersc.gov/m4916/aqdrop-operator:202608060`. Pulling it requires NERSC
+registry authorization for project `m4916`. Set `AQDROP_OPERATOR_IMAGE` to an
+approved development image only when intentionally targeting a development
+environment.
 
 From the `aqdrop-client` repository root, mount only the local operator package
 and put its parent directory first on Python's import path:
@@ -175,7 +181,7 @@ are loaded together.
 Set these variables before starting a runner:
 
 ```bash
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_TOKEN=<current-sfapi-token>
 export QUBIC_CALIB_BASE_PATH=/path/to/qpus_calib
 ```

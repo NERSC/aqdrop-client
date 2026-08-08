@@ -3,9 +3,9 @@
 set -euo pipefail
 
 AQDROP_CLIENT_DIR=${AQDROP_CLIENT_DIR:-/pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client}
-AQDROP_OPERATOR_IMAGE=${AQDROP_OPERATOR_IMAGE:-${AQDROP_IMAGE:-registry.nersc.gov/dseg/aqdrop-operator:202608060}}
+AQDROP_OPERATOR_IMAGE=${AQDROP_OPERATOR_IMAGE:-${AQDROP_IMAGE:-registry.nersc.gov/m4916/aqdrop-operator:202608060}}
 AQDROP_CONTAINER_RUNTIME=${AQDROP_CONTAINER_RUNTIME:-podman-hpc}
-AQDROP_HOSTNAME=${AQDROP_HOSTNAME:-https://aqdrop-api-dev2.lbl-b59.org}
+AQDROP_HOSTNAME=${AQDROP_HOSTNAME:-https://aqdrop-api.nersc.gov}
 SFAPI_CLIENT_ID_FILE=${SFAPI_CLIENT_ID_FILE:-$HOME/.ssh/aqdrop-sfapi-client-id}
 SFAPI_PRIVATE_KEY_FILE=${SFAPI_PRIVATE_KEY_FILE:-$HOME/.ssh/aqdrop-sfapi-private-key.pem}
 

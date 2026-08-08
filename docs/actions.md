@@ -32,7 +32,7 @@ commands:
 Existing SFAPI bearer token:
 
 ```bash
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_TOKEN=<your-sfapi-token>
 ```
 
@@ -43,7 +43,7 @@ supported.
 Automatic SFAPI token fetch with client credentials:
 
 ```bash
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_CLIENT_ID=<your-sfapi-client-id>
 export SFAPI_PRIVATE_KEY_PATH=$HOME/.ssh/aqdrop-sfapi-private-key.pem
 ```
