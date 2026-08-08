@@ -16,17 +16,17 @@ Log in to the NERSC registry if necessary, then pull the image with
 for access requirements and login details:
 
 ```bash
-export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608060
+export AQDROP_IMAGE=registry.nersc.gov/m4916/aqdrop-operator:202608060
 
 podman-hpc login registry.nersc.gov
 podman-hpc pull "$AQDROP_IMAGE"
 ```
 
-Set the deployed development API and identify both credential files on the
-host:
+Registry access requires authorization for the NERSC `m4916` project. Set the
+production API and identify both credential files on the host:
 
 ```bash
-export AQDROP_HOSTNAME=https://aqdrop-api-dev2.lbl-b59.org
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_CLIENT_ID_FILE="$HOME/.ssh/aqdrop-sfapi-client-id"
 export SFAPI_PRIVATE_KEY_FILE="$HOME/.ssh/aqdrop-sfapi-private-key.pem"
 ```
@@ -102,7 +102,7 @@ in a prompt as shown below. Use the corresponding invocation syntax in other
 tools.
 
 ```text
-Use $use-aqdrop-tools to list the queues on the AQDrop development API.
+Use $use-aqdrop-tools to list the queues on the AQDrop production API.
 Use $use-aqdrop-tools to dry-run Qiskit job 1005 with the operator image.
 ```
 
@@ -136,7 +136,7 @@ Existing SFAPI bearer token:
 import aqdrop
 
 client = aqdrop.AqdropClient(
-    host="https://<aqdrop-api-host>",
+    host="https://aqdrop-api.nersc.gov",
     token="<sfapi-token>",
 )
 ```
@@ -150,7 +150,7 @@ Automatic SFAPI token fetch with client credentials:
 import aqdrop
 
 client = aqdrop.AqdropClient(
-    host="https://<aqdrop-api-host>",
+    host="https://aqdrop-api.nersc.gov",
     client_id="<sfapi-client-id>",
     private_key_path="/path/to/private-key.pem",
 )
@@ -160,7 +160,7 @@ If you omit those constructor arguments, the SDK will look for environment
 variables instead:
 
 ```bash
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 
 # Option 1: existing SFAPI bearer token
 export SFAPI_TOKEN=<your-sfapi-token>

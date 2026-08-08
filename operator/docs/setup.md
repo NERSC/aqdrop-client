@@ -44,7 +44,7 @@ For an existing checkout, pull the intended branch before rebuilding.
 Store credentials in a private shell file outside the repository:
 
 ```bash
-export AQDROP_HOSTNAME=https://<aqdrop-api-host>
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_TOKEN=<current-sfapi-token>
 export QUBIC_CALIB_BASE_PATH=$HOME/dataVault2026/qpus_calib
 ```

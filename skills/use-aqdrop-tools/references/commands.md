@@ -7,8 +7,8 @@ Use these templates after confirming the target environment. Read the repository
 At NERSC, set the published image and target API:
 
 ```bash
-export AQDROP_IMAGE=registry.nersc.gov/dseg/aqdrop-operator:202608060
-export AQDROP_HOSTNAME=https://aqdrop-api-dev2.lbl-b59.org
+export AQDROP_IMAGE=registry.nersc.gov/m4916/aqdrop-operator:202608060
+export AQDROP_HOSTNAME=https://aqdrop-api.nersc.gov
 export SFAPI_CLIENT_ID_FILE="$HOME/.ssh/aqdrop-sfapi-client-id"
 export SFAPI_PRIVATE_KEY_FILE="$HOME/.ssh/aqdrop-sfapi-private-key.pem"
 ```
@@ -44,6 +44,10 @@ ssh -J perlmutter.nersc.gov login12
 ```
 
 Do not include token values in agent output or shell tracing.
+
+The production image requires NERSC registry access to project `m4916`.
+Override `AQDROP_IMAGE` and `AQDROP_HOSTNAME` only when the user explicitly requests a development
+environment such as `https://aqdrop-api-dev2.lbl-b59.org`.
 
 ## Client Actions And Roles
 

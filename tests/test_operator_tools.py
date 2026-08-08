@@ -85,20 +85,24 @@ def test_operator_scripts_support_direct_execution(script_name):
     assert '__package__ = "aqdrop_operator"' in source
 
 
-def test_operator_launcher_defaults_to_podman_hpc_without_source_mount():
-    launcher = (ROOT / "operator/launch-qubic3.sh").read_text()
+@pytest.mark.parametrize(
+    "launcher_name",
+    ("launch-dev-container.sh", "launch-qubic3-container.sh"),
+)
+def test_operator_launchers_default_to_production(launcher_name):
+    launcher = (ROOT / "operator" / launcher_name).read_text()
 
-    assert "AQDROP_CONTAINER_RUNTIME=${AQDROP_CONTAINER_RUNTIME:-podman-hpc}" in launcher
+    assert "https://aqdrop-api.nersc.gov" in launcher
+    assert "registry.nersc.gov/m4916/aqdrop-operator:202608060" in launcher
     assert 'exec "$AQDROP_CONTAINER_RUNTIME" run' in launcher
-    assert "AQDROP_CLIENT_DIR" not in launcher
-    assert "/workspace/aqdrop-client" not in launcher
 
 
 def test_dev_launcher_uses_local_source_without_installing():
     launcher = (ROOT / "operator/launch-dev-container.sh").read_text()
 
     assert "/pscratch/sd/d/dingpf/aqdrop_workdir/aqdrop-client" in launcher
-    assert "https://aqdrop-api-dev2.lbl-b59.org" in launcher
+    assert "https://aqdrop-api.nersc.gov" in launcher
+    assert "registry.nersc.gov/m4916/aqdrop-operator:202608060" in launcher
     assert "$HOME/.ssh/aqdrop-sfapi-client-id" in launcher
     assert "$HOME/.ssh/aqdrop-sfapi-private-key.pem" in launcher
     assert "aqdrop-generate-sfapi-token" in launcher
