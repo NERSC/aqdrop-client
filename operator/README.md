@@ -103,13 +103,13 @@ checkout read-write, opens an interactive container, and prints the commands
 for verifying and running the local Qiskit operator.
 
 Override `AQDROP_HOSTNAME`, `SFAPI_CLIENT_ID_FILE`,
-`SFAPI_PRIVATE_KEY_FILE`, `AQDROP_CLIENT_DIR`, `AQDROP_OPERATOR_IMAGE`, or
+`SFAPI_PRIVATE_KEY_FILE`, `AQDROP_CLIENT_DIR`, `AQDROP_IMAGE`, or
 `AQDROP_CONTAINER_RUNTIME` when different API, credentials, checkout, image, or
 runtime values are needed.
 
 The published production image is
 `registry.nersc.gov/m4916/aqdrop-operator:202608060`. Pulling it requires NERSC
-registry authorization for project `m4916`. Set `AQDROP_OPERATOR_IMAGE` to an
+registry authorization for project `m4916`. Set `AQDROP_IMAGE` to an
 approved development image only when intentionally targeting a development
 environment.
 
