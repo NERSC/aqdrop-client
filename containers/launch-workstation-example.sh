@@ -2,12 +2,11 @@
 set -e  # Exit immediately on any error
 
 source ~/.ssh/aqdrop_user.creds
-env |grep AQDROP  # activate to see the creds
 
-IMG=ubu24-aqdrop:p1d
+IMG=aqdrop-client:latest
 
 echo launch image $IMG
-echo you are launching Podman image ...  remeber to exit
+echo you are launching Podman image ... remember to exit
 
 JNB_PORT=''
 BASE_DIR=/shared_volumes/myAQDrop/AQDrop   # here git has home
@@ -36,4 +35,5 @@ eval podman run -it \
     --volume $BASE_DIR:/AQDrop \
     -e DISPLAY=host.containers.internal:0  \
     --workdir $WORK_DIR $JNB_PORT \
-    $IMG /bin/bash
+    --entrypoint /bin/bash \
+    $IMG

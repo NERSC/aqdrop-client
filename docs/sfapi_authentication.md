@@ -2,7 +2,7 @@
 
 AQDrop authenticates clients with a NERSC Superfacility API (SFAPI) access
 token. Create an SFAPI OAuth client once in Iris, then use the AQDrop helper to
-generate a short-lived token whenever you start a client or operator session.
+generate a short-lived token whenever you start a client session.
 
 AQDrop does not issue credentials and does not support a separate AQDrop
 username/password login. The API derives the NERSC username from the validated

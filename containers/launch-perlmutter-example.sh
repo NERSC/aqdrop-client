@@ -1,14 +1,13 @@
 #!/bin/bash
 
 source ~/.ssh/aqdrop_user.creds
-env |grep AQDROP  # activate to see the creds
 
-IMG=ubu24-aqdrop:p1c
+IMG=aqdrop-client:latest
 
 CFSH=/global/cfs/cdirs/mpccc/balewski/
 
 echo launch image $IMG
-echo you are launching Podman-HPC image ...  remeber to exit
+echo you are launching Podman-HPC image ... remember to exit
 
 JNB_PORT=' '
 BASE_DIR=/AQDrop   # here git has home
@@ -34,4 +33,5 @@ eval podman-hpc run -it \
     --volume $CFSH/${DATA_VAULT}:${DATA_VAULT} \
     -e DISPLAY  --net=host -v $HOME:$HOME -e HOME  \
    --workdir $WORK_DIR \
-   $IMG /bin/bash
+   --entrypoint /bin/bash \
+   $IMG

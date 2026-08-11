@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use AQDrop Client"
+  short_description: "Use the AQDrop SDK and CLI safely"
+  default_prompt: "Use $use-aqdrop-client to inspect AQDrop queues or jobs and perform the requested client action safely."
