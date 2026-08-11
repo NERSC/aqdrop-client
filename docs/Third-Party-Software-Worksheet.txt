@@ -1,44 +1,26 @@
 Background Intellectual Property / Third Party & Auxiliary Software
 Open Source Software (OSS) and Non-OSS
 
-Scope: direct dependencies and prominent container/runtime components in the
-current NERSC/aqdrop-client repository. API server and Helm deployment
-dependencies are maintained separately in NERSC/aqdrop-server. Exact transitive
-versions resolve during package or image installation unless otherwise pinned.
+Scope: direct dependencies and the client container base in the current
+NERSC/aqdrop-client repository. API server dependencies are maintained in
+NERSC/aqdrop-server. Operator, simulator-runner, calibration, and QPU
+dependencies are maintained in the private NERSC/aqdrop-operator repository.
 
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| Name of Original Software &   | How used                                     | Modified or  | Name of Developer/Licensor    | License Type         | If distributed by LBNL           | Repository Link                                          |
-| Version                       |                                               | Unmodified?  |                               |                      |                                   |                                                          |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| authlib >=1.6.0               | OAuth2 client for SFAPI token fetch           | Unmodified   | Hsiaoming Yang / contributors | BSD-3-Clause         | Yes                               | https://github.com/lepture/authlib                       |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| httpx >=0.28.1                | HTTP client for AQDrop API calls              | Unmodified   | Encode OSS / contributors     | BSD-3-Clause         | Yes                               | https://github.com/encode/httpx                          |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| requests >=2.32.0             | HTTP transport used by Authlib                | Unmodified   | PSF / contributors            | Apache-2.0           | Yes                               | https://github.com/psf/requests                          |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| tabulate >=0.10.0             | CLI table formatting                          | Unmodified   | Sergey Astanin et al.         | MIT                  | Yes                               | https://github.com/astanin/python-tabulate               |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| setuptools >=77 (build)       | PEP 517 build backend for the client package  | Unmodified   | Python Packaging Authority    | MIT                  | Build-time                        | https://github.com/pypa/setuptools                       |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| qiskit[core] >=2.3.1,<3       | Circuit/QPY support for users and operators   | Unmodified   | IBM Qiskit team               | Apache-2.0           | Optional                          | https://github.com/Qiskit/qiskit                         |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| qiskit-aer                    | Simulator backend for operator workflows      | Unmodified   | IBM Qiskit team               | Apache-2.0           | Operator extra                    | https://github.com/Qiskit/qiskit-aer                     |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| qiskit-ibm-runtime            | IBM runtime/fake-backend operator support     | Unmodified   | IBM Qiskit team               | Apache-2.0           | Operator extra                    | https://github.com/Qiskit/qiskit-ibm-runtime             |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| PyYAML >=6                    | Active-QPU and calibration configuration      | Unmodified   | Kirill Simonov / contributors | MIT                  | Operator extra                    | https://github.com/yaml/pyyaml                           |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| quantum-calibration           | Calibration and QPU execution path           | Unmodified   | Regents of UC via LBNL / qcal | BSD-3-Clause         | Operator extra                    | https://github.com/akelhashim/qcal                       |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| lbl-qubic                     | QubiC hardware-stack integration              | Unmodified   | Lawrence Berkeley Natl Lab    | Project license      | Operator extra                    | https://gitlab.com/LBL-QubiC                             |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
-| Ubuntu 24.04                  | Operator and example container base           | Unmodified   | Canonical / Debian maintainers| Various OSS          | If images are distributed         | https://ubuntu.com/                                      |
-+-------------------------------+-----------------------------------------------+--------------+-------------------------------+----------------------+-----------------------------------+----------------------------------------------------------+
+| Software and version | Use | Modification | Developer/licensor | License | Distribution | Repository |
+|---|---|---|---|---|---|---|
+| authlib >=1.6.0 | OAuth2 client for SFAPI token exchange | Unmodified | Hsiaoming Yang / contributors | BSD-3-Clause | Yes | https://github.com/lepture/authlib |
+| httpx >=0.28.1 | HTTP client for AQDrop API calls | Unmodified | Encode OSS / contributors | BSD-3-Clause | Yes | https://github.com/encode/httpx |
+| requests >=2.32.0 | HTTP transport used by Authlib | Unmodified | Python Software Foundation / contributors | Apache-2.0 | Yes | https://github.com/psf/requests |
+| tabulate >=0.10.0 | CLI table formatting | Unmodified | Sergey Astanin et al. | MIT | Yes | https://github.com/astanin/python-tabulate |
+| setuptools >=77.0.3 | PEP 517 build backend | Unmodified | Python Packaging Authority | MIT | Build-time | https://github.com/pypa/setuptools |
+| qiskit[core] >=2.3.1,<3 | Optional circuit and QPY support for job submission examples | Unmodified | IBM Qiskit team | Apache-2.0 | Optional | https://github.com/Qiskit/qiskit |
+| Python 3.12 slim container image | Client container runtime | Unmodified | Python Software Foundation / Debian contributors | PSF and various OSS | If image is distributed | https://hub.docker.com/_/python |
 
 Notes:
-  - Operator images also install standard scientific Python tools declared in
-    operator/containers/aqdrop-operator.dockerfile.
-  - Additional transitive dependencies are installed by pip and the Ubuntu
-    package manager.
-  - Confirm package metadata and resolved versions when preparing a formal
-    distribution filing.
+
+- The base client installation does not include Qiskit. Install the `qiskit`
+  extra only for circuit submission and retrieval workflows.
+- `containers/aqdrop-client.dockerfile` installs the Qiskit extra so repository
+  examples can run in the client image.
+- Confirm resolved transitive versions when preparing a formal distribution
+  filing.

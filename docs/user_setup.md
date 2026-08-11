@@ -155,9 +155,7 @@ source ~/.ssh/aqdrop.creds
 
 For container use, source the credentials on the host and pass the environment
 variables into the container at runtime. Prefer generating `SFAPI_TOKEN` once
-and passing it into each short-lived container. Inspect `examples/pm_balewski.src`
-to see how to source credentials before the image is launched and pass the
-environment variables to the image at execution time.
+and passing it into each short-lived container.
 
 If you use the SFAPI client-credential flow inside a container, mount the
 private-key file into the container and pass its mounted path through
@@ -190,22 +188,25 @@ If you need to build the image yourself, use the provided recipe:
 git clone https://github.com/NERSC/aqdrop-client.git
 cd aqdrop-client
 
-podman-hpc build -f examples/ubu24-aqdrop.dockerfile -t ubu24-aqdrop:p2 .
-podman-hpc migrate ubu24-aqdrop:p2
+podman-hpc build \
+  -f containers/aqdrop-client.dockerfile \
+  -t aqdrop-client:latest .
+podman-hpc migrate aqdrop-client:latest
 ```
 
 The image installs the AQDrop package from the checkout used as its build
-context. Start the container with a site-provided launcher script. For example,
-this repository includes `pm_balewski.src` as a user-specific launcher:
+context. Its entry point is the `aqdrop` CLI. Generate `SFAPI_TOKEN` on the
+host and pass it to the container:
 
 ```bash
-. ./pm_balewski.src
+podman-hpc run --rm \
+  -e AQDROP_HOSTNAME \
+  -e SFAPI_TOKEN \
+  aqdrop-client:latest queue_list
 ```
 
-Adapt that image starting script for your account, paths, image tag, and credential source.
-The launcher should pass either `SFAPI_TOKEN` or the pair
-`SFAPI_CLIENT_ID` / `SFAPI_PRIVATE_KEY_PATH`, plus `AQDROP_HOSTNAME` into the
-container.
+For an interactive shell, override the entry point with the option supported by
+the local container runtime. Do not include credentials in the image.
 
 ## Minimal Example for Submit and Retrieve Quantum Job on AQT QPU Named X6Y3
 

@@ -1,4 +1,4 @@
 from .main import *
 
 __author__ = "Evan Caplinger"
-__version__ = "0.17"
+__version__ = "0.18"

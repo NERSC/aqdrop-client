@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 77.0.3", "httpx"]
+requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -29,9 +29,6 @@ dependencies = [
 [project.scripts]
 aqdrop = "aqdrop.cli:main"
 aqdrop-generate-sfapi-token = "aqdrop.generate_sfapi_token:main"
-aqdrop-operator = "aqdrop_operator.operator_daemon:cli"
-aqdrop-run-qiskit = "aqdrop_operator.job_run_qiskit:cli"
-aqdrop-run-qpu = "aqdrop_operator.job_run_qpu:cli"
 
 [project.optional-dependencies]
 test = [
@@ -40,21 +37,13 @@ test = [
 qiskit = [
     "qiskit[core]>=2.3.1,<3"
 ]
-operator = [
-    "lbl-qubic",
-    "PyYAML>=6",
-    "qiskit[core]>=2.3.1,<3",
-    "qiskit-aer",
-    "qiskit-ibm-runtime",
-    "quantum-calibration",
-]
-
 [project.urls]
 Repository = "https://github.com/NERSC/aqdrop-client"
+Operator = "https://github.com/NERSC/aqdrop-operator"
 
 [tool.setuptools.dynamic]
 version = {attr = "aqdrop.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["aqdrop*"]
+include = ["aqdrop", "aqdrop.*"]
 exclude = ["admin*", "examples*"]

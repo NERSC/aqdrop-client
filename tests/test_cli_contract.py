@@ -13,6 +13,13 @@ def test_cli_has_no_member_management_actions():
     assert not {name for name in action_names if name.startswith("member_")}
 
 
+def test_cli_has_no_operator_only_actions():
+    action_names = {module.name for module in pkgutil.iter_modules(aqdrop.actions.__path__)}
+
+    assert "job_reset" not in action_names
+    assert "job_decline" not in action_names
+
+
 def test_every_action_describes_ldap_access():
     for module_info in pkgutil.iter_modules(aqdrop.actions.__path__):
         module = importlib.import_module(f"aqdrop.actions.{module_info.name}")

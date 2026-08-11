@@ -1,4 +1,0 @@
-interface:
-  display_name: "Use AQDrop Tools"
-  short_description: "Operate AQDrop client and job runners safely"
-  default_prompt: "Use $use-aqdrop-tools to inspect AQDrop queues and jobs or run an operator workflow safely."

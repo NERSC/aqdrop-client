@@ -14,7 +14,7 @@ python -m pip install "aqdrop @ git+https://github.com/NERSC/aqdrop-client.git@m
 aqdrop --help
 ```
 
-For a local checkout or Qiskit/operator extras, follow
+For a local checkout or the Qiskit extra, follow
 [End-User Setup](user_setup.md#install-the-client).
 
 ## Authentication
@@ -70,7 +70,8 @@ automatically refreshed.
 
 The server derives the username from the validated token and checks NERSC LDAP.
 No separate AQDrop username is configured. The CLI action list reports the
-required LDAP access; admin and operator privileges are independent.
+required LDAP access. Operator execution commands are maintained in the
+separate `NERSC/aqdrop-operator` repository.
 
 ## General Usage
 
@@ -139,16 +140,6 @@ job.
 **Arguments:**
 - `--id`: The ID of the job.
 
-### `job_decline`
-Declines a queued job. Requires `aqdrop_operator`.
-
-**Usage:**
-`aqdrop job_decline --id <job_id> --output <message>`
-
-**Arguments:**
-- `--id`: The ID of the job.
-- `--output`: The output message to associate with the job.
-
 ### `job_dump`
 Retrieves and displays all metadata, input parameters, and output results for a specific job.
 
@@ -160,16 +151,6 @@ user's job after a live LDAP check.
 
 **Arguments:**
 - `--id`: The ID of the job.
-
-### `job_reset`
-Resets a job for another dispatch attempt. Requires `aqdrop_operator`.
-
-**Usage:**
-`aqdrop job_reset --id <job_id> [--message <reason>]`
-
-**Arguments:**
-- `--id`: The ID of the job.
-- `--message`: An optional reset reason.
 
 ---
 

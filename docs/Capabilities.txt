@@ -7,7 +7,7 @@ The thin Python SDK is packaged with setuptools for installation from the NERSC 
 
 The server deployment is implemented as a FastAPI application with SQLAlchemy and a PostgreSQL database. NERSC SFAPI bearer-token authentication identifies callers, while NERSC LDAP groups grant ordinary, operator, and administrator access. Job ownership and audit attribution use NERSC usernames directly; AQDrop does not maintain local user accounts. Job and queue endpoints persist state through CRUD layers against PostgreSQL.
 
-Operator-side tooling runs on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through the SDK, execute circuits with Qiskit (including Aer simulators or IBM fake backends where configured), or—with optional calibration-stack dependencies—drive lab-specific quantum control stacks and transpilers before posting results back through the API. The operator container installs the same client package and its operator extra. At NERSC, container workflows use `podman-hpc`; other sites can use their available OCI-compatible build and runtime tools.
+Operator-side tooling runs on machines adjacent to hardware or simulators. Daemon scripts poll or drive workflows that fetch queued work through this SDK, execute circuits with Qiskit, or drive lab-specific quantum control stacks before posting results through the API. That runtime, its hardware dependencies, and the operator container are maintained separately in `NERSC/aqdrop-operator`.
 
 
 Capabilities
@@ -21,9 +21,9 @@ Capabilities
 
 • Job management: submit structured job input (including Qiskit circuits with shot metadata when using the SDK); query jobs by id, queue, owner, or status; retrieve results; check status; cancel or dispatch updates subject to permissions.
 
-• Command-line parity with core API workflows for scripting and automation.
+• A command-line interface for user job operations and authorized queue administration.
 
-• Operator execution paths: pull work in “queued” state, run predefined simulation or hardware pipelines, and push outputs so users see completion through the same job records the client and dashboard use.
+• A stable SDK consumed by the separate operator runtime when it pulls queued work and posts results.
 
 
 Intended end-use
